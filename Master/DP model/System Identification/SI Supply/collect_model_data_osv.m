@@ -3,7 +3,6 @@ clear, clc, close all;
 addpath("..\..\..\Tools\");
 
 % Load configuration data
-addpath("..\Plots\");
 run 'setup_supply_variable_input_prbs';
 
 % Preallocate arrays

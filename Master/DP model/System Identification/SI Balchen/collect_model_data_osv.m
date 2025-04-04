@@ -3,13 +3,13 @@ clear, clc, close all;
 addpath("..\..\..\Tools\");
 
 % Load configuration data
-run 'setup_osv_variable_input_prbs';
+run 'setup_balchen_variable_input_prbs';
 
 % Preallocate arrays
 t = 0;
 t_array = zeros(1,N+1);    % Time
 
-x_array = zeros(12,N+1);   % States 
+x_array = zeros(8,N+1);   % States 
 x_array(:,1) = x0;
 
 x = x0;
@@ -21,12 +21,12 @@ for i=1:N
 
         case (IntegrationMethod.Forward_Euler)
             % Forward Euler
-            [xdot,U,M] = osv(x,u_array(:,i));
+            [xdot,U,M] = balchen_model(x,u_array(:,i), zeros(2,1), 0, zeros(3,1));
             x = x + xdot*dt;
 
         case (IntegrationMethod.Runge_Kutta_Fourth_Order)
             % Runge-Kutta 4th order
-            [~, x] = runge_kutta_4(@(t, x) osv(x, u_array(:,i)), t, x, dt);
+            [~, x] = runge_kutta_4(@(t, x) balchen_model(x, u_array(:,i), zeros(2,1), 0, zeros(3,1)), t, x, dt);
     end
 
     % Update time
@@ -39,10 +39,10 @@ for i=1:N
 end
 
 % Save data for DSR
-save Log/dsr_osv_data t_array x_array u_array u_force_array u_squared;
+save Log/dsr_balchen_data t_array x_array u_array;
 
 % Plot data
-plot_osv_states_path_input(t_array, x_array, u_array);
+plot_balchen_states_path_input(t_array, x_array, u_array);
 
 disp('Hit enter to continue!')
 pause;

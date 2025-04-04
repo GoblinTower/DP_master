@@ -1,14 +1,14 @@
-% Script implementing LQ optimal control for the OSV model
+% Script implementing LQ optimal control for the supply model
 clear, clc, close all;
 
 addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data
-run 'Scenarios\osv_scenario_LQ_control';
+run 'Scenarios\balchen_scenario_LQ_control';
 
 % Create model using DSR generated matrices
-dsr = load('Log\ssm_dsr_osv.mat');
+dsr = load('Log\ssm_dsr_balchen.mat');
 A_si = dsr.A;
 B_si = dsr.B;
 C_si = dsr.C;
@@ -16,21 +16,21 @@ C_si = dsr.C;
 % Preallocate arrays
 t_array = zeros(1,N+1);         % Time array
 
-x_array = zeros(12,N+1);        % State array from real process (unknown)
+x_array = zeros(8,N+1);         % State array from real process (unknown)
 x_array(:,1) = x0;              % Storing initial value of state
 
-x_est_array = zeros(12,N+1);     % Storing estimated states (from Kalman, known)
+x_est_array = zeros(9,N+1);     % Storing estimated states (from Kalman, known)
 x_est_array(:,1) = x0_est;      % Storing initial assumed value of state
 
 y_meas_array = zeros(3,N+1);    % Measurement array
 y_meas_array(:,1) = y0_meas;    % Storing initial value of measurement 
 
-u_array = zeros(4,N);           % Control input array
+u_array = zeros(3,N);           % Control input array
 
 % Initial values
-x_prev = zeros(12,1);      % Previus state 
+x_prev = zeros(9,1);      % Previus state 
 y_prev = zeros(3,1);      % previous output
-u_prev = zeros(4,1);      % Previous control signal
+u_prev = zeros(3,1);      % Previous control signal
 
 x = x0;                   % Initial real state 
 x_est = x0_est;           % Initial state estimate
@@ -47,7 +47,7 @@ if (animate_kalman_estimate)
 end
 
 % Store Kalman gain
-K_array = zeros(12*3,N);   % Storing Kalman filter gain
+K_array = zeros(9*3,N);   % Storing Kalman filter gain
 
 for i=1:N
 
@@ -72,10 +72,6 @@ for i=1:N
         x_prev = x;
     end
 
-    % Calculate RPM input to OSV model
-    % u = clip(u,[-50;-50;-50;-50], [50; 50; 50; 50]);
-    u_mod = [sign(u).*sqrt(abs(u)); deg2rad(azimuth_angle_1); deg2rad(azimuth_angle_2)];
-
     % Store the values of state, measurements and input as old values for
     % the next iteration of control calculations.
     y_prev = y_meas;
@@ -86,12 +82,12 @@ for i=1:N
     switch (integration_method)
         case (IntegrationMethod.Forward_Euler)
             % Forward Euler
-            xdot = osv(x, u_mod);
+            xdot = balchen_model(x, u, zeros(2,1), 0, zeros(3,1));
             x = x + xdot*dt;
 
         case (IntegrationMethod.Runge_Kutta_Fourth_Order)
             % Runge-Kutta 4th order
-            [~, x] = runge_kutta_4(@(t, x) osv(x, u_mod), t, x, dt);
+            [~, x] = runge_kutta_4(@(t, x) balchen_model(x, u, zeros(2,1), 0, zeros(3,1)), t, x, dt);
     end
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%

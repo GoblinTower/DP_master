@@ -12,13 +12,14 @@ data = load("Log\dsr_osv_data.mat");
 % x[10:12]: phi, theta, psi: (angular position in roll, pitch and yaw)
 % Assume position (GPS) and velocity is known
 y_array = [data.x_array(1:2,:); data.x_array(6,:)];
-u_array = [data.u_array(1:4,degree2rad(thr))];
+u_array = [data.u_squared(1:4,:)]; % degree2rad(azimuth_angle_1),deg2rad(azimuth_angle_2);
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% System identification - DSR %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % System identification parameters (DSR)
 L_sys = 3;              % Number of block rows in extended observability matrix
-n_sys = 3;              % Number of states
+n_sys = 6;              % Number of states
 g_sys = 0;              % Structure parameter
 M_sys = 1;
 

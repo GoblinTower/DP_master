@@ -3,7 +3,7 @@
 
 dt = 1.0;           % Timestep used in integration
 
-T = 3000;           % End time
+T = 10000;          % End time
 N = ceil(T/dt);     % Number of sample steps
 
 % Select integration method
@@ -25,7 +25,7 @@ azimuth_angle_2 = 180;
 % We want the aximuth angle pointed in a fixed direction,
 % in this case pointing in negative surge direction, thus
 % emulating the behaviour of rudderless propellers.
-rpm_multiplier = [50; 50; 50; 50];
+rpm_multiplier = [150; 150; 150; 150];
 Tmin = 50;
 Tmax = 100;
 for i=1:4

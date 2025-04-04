@@ -14,8 +14,8 @@ N = ceil(T/dt);     % Number of sample steps
 integration_method = IntegrationMethod.Runge_Kutta_Fourth_Order;
 
 % LQ control parameters
-Q = diag([0.01e1, 0.01e1, 0.01e1]);           % State weighting matrix
-P = 1.0*eye(4);                      % Input weighting matrix
+Q = diag([1e9, 1e9, 1e15]);          % State weighting matrix
+P = 1.0*eye(3);                      % Input weighting matrix
 
 % Setpoints [North, East, Yaw]
 setpoint = zeros(3,N+1);
@@ -30,27 +30,23 @@ for k=1:N
     end
 end
 
-% Constant azimuth angles
-azimuth_angle_1 = 180;
-azimuth_angle_2 = 180;
-
 % Kalman filter
 run_kalman_filter = true;
 
-W = 100.0*eye(12);                % Process noise
-V = 1.0*eye(3);                % Measurement noise
+W = 1.0*eye(9);                 % Process noise
+V = 10.0*eye(3);                % Measurement noise
 
-x0_est = [0; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0];    % Initial state estimate
+x0_est = [0; 0; 0; 0; 0; 0; 0; 0; 0];    % Initial state estimate
 
-p_aposteriori = 1.0*eye(12);     % Aposteriori covariance estimate
+p_aposteriori = 1.0*eye(9);     % Aposteriori covariance estimate
 x_aposteriori = x0_est;         % Aposteriori state estimate
 
 animate_kalman_estimate = true; % Animate kalman estimate
 animation_delay = 0.01;         % Animation speed (in seconds)
 
 % Initial values
-% x = [x, y, psi, u, v, r]
-x0 = [0; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0];       % Initial values of states (real)
+% x = [x, y, psi, x_su, x_sw u, v, r]
+x0 = [0; 0; 0; 0; 0; 0; 0; 0];          % Initial values of states (real)
 % y = [x, y, psi]
 y0_meas = x0(1:3);                      % Initial values of measurements
 
