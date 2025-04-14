@@ -1,4 +1,4 @@
-function [A_lin, B_lin, C_lin] = supply_discrete_matrices_si(A_si, B_si, C_si, psi, dt)
+function [A_lin, B_lin, C_lin] = dp_model_discrete_matrices_si(A_si, B_si, C_si, psi, dt)
 % Function calculates model matrices based on identified body dynamics defined
 % by A_si, B_si and C_si. These are then transformed into a state space
 % model of order n_dim + m_dim + 3.

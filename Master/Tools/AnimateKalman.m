@@ -33,9 +33,9 @@ classdef AnimateKalman < handle
             
             % Vessel heading plot
             subplot(1,2,2);
-            title('Vessel heading');
+            title('Vessel heading [°]');
             xlabel('Time');
-            ylabel('Vessel heading');
+            ylabel('Vessel heading [°]');
             legend();
 
             obj.plot_estimated_psi_handle = animatedline('Color','b',...
@@ -74,11 +74,11 @@ classdef AnimateKalman < handle
             addpoints(obj.plot_setpoint_position_handle, setpoint_east, setpoint_north);
 
             % Vessel heading
-            addpoints(obj.plot_estimated_psi_handle, t,  x_psi);
-            addpoints(obj.plot_measured_psi_handle, t, y_psi);
+            addpoints(obj.plot_estimated_psi_handle, t,  rad2deg(x_psi));
+            addpoints(obj.plot_measured_psi_handle, t, rad2deg(y_psi));
             
             clearpoints(obj.plot_setpoint_psi_handle);
-            addpoints(obj.plot_setpoint_psi_handle, t, setpoint_psi);
+            addpoints(obj.plot_setpoint_psi_handle, t, rad2deg(setpoint_psi));
             
             drawnow;
            

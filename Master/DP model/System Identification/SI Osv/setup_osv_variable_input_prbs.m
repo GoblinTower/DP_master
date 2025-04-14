@@ -1,9 +1,9 @@
 %%% Setup for ship subjected to variable values in the control input
 %%% using PRBS (PseudoRandom Binary Sequence)
 
-dt = 1.0;           % Timestep used in integration
+dt = 0.1;           % Timestep used in integration
 
-T = 10000;          % End time
+T = 7200;           % End time
 N = ceil(T/dt);     % Number of sample steps
 
 % Select integration method
@@ -18,19 +18,20 @@ u_array = zeros(6,N);
 u_force_array = zeros(3,N);
 
 % Constant azimuth angles
-azimuth_angle_1 = 180;
-azimuth_angle_2 = 180;
+azimuth_angle_1 = 0;
+azimuth_angle_2 = 0;
 
-% Important to differentiate between thruster RPM and azimuth angle.
-% We want the aximuth angle pointed in a fixed direction,
+% Important to differentiate between thruster RPS and azimuth angle.
+% We want the azimuth angle pointed in a fixed direction,
 % in this case pointing in negative surge direction, thus
-% emulating the behaviour of rudderless propellers.
-rpm_multiplier = [150; 150; 150; 150];
+% emulating the behaviour of rudderless propellers. The second
+% tunnel thruster is set to be inactive (zero control signal).
+rps_multiplier = [6000/60; 0; 6000/60; 6000/60];
 Tmin = 50;
-Tmax = 100;
+Tmax = 250;
 for i=1:4
-    [u_array(i,:),~] = prbs1(N, Tmin, Tmax);             % PseudoRandom Binary Sequence (function written by David De Ruscio (USN))
-    u_array(i,:) = rpm_multiplier(i)*u_array(i,:);
+        [u_array(i,:),~] = prbs1(N, Tmin, Tmax);         % PseudoRandom Binary Sequence (function written by David De Ruscio (USN))
+        u_array(i,:) = rps_multiplier(i)*u_array(i,:);
 end
 u_array(5,:) = deg2rad(azimuth_angle_1);                 % Azimuth thruster 1 points backwards
 u_array(6,:) = deg2rad(azimuth_angle_2);                 % Azimuth thruster 2 points backwards
@@ -42,14 +43,14 @@ generate_state_space_model = true;
 
 % Calculate generalized force
 % These formulas an values are fetched from the OSV script developed
-% by Thor I. Fossen. with slight modifcations by me to obtain
+% by Thor I. Fossen with some slight modifcations by me to obtain
 % the relevant forces
 L = 83;                                                         % Length (m)
 K_max = [300e3 300e3 420e3 655e3]';                             % Max propeller thrust (N)
 n_max = [140 140 150 200]';                                     % Max propeller speed (rpm)
 K_thr = diag(K_max./n_max.^2);                                  % Thruster coefficient matrix
-l_x = [37, 35, -L/2, -L/2];                                     % Thruster x-coordinates
-l_y = [0, 0, 7, -7];                                            % Thruster y-coordinates
+l_x = [37, 35, -L/2, -L/2];                                     % Thruster x-coordinates (m)
+l_y = [0, 0, 7, -7];                                            % Thruster y-coordinates (m)
 
 % If om the future alpha is to changed during the run, must be modified.
 T_thr = thrConfig( {'T', 'T', deg2rad(azimuth_angle_1), deg2rad(azimuth_angle_1)}, l_x, l_y);
@@ -68,14 +69,18 @@ show_debug_plots = true;
 
 if (show_debug_plots)
     figure(101);
-    titles = {'thruster 1', 'thruster 2', 'azimuth thruster 3', ...
-        'azimuth thruster 4', 'angle azimuth thruster 5', 'angle azimuth thruster 6'};
-    ylabels = {'RPM', 'RPM', 'RPM', 'RPM', 'Angle [rad]', 'Angle [rad]'};
+    titles = {'Tunnel thruster (1)', 'Tunnel thruster (2)', 'Azimuth thruster (3)', ...
+        'Azimuth thruster (4)', 'Angle azimuth thruster (3)', 'Angle azimuth thruster (4)'};
+    ylabels = {'RPM', 'RPM', 'RPM', 'RPM', 'Angle [°]', 'Angle [°]'};
     time = 0:dt:T+1;
     time = time(1:N);
     for i=1:6
         subplot(3,2,i);
-        plot(time, u_array(i,:));
+        if ((i == 5) || (i == 6))
+            plot(time, rad2deg(u_array(i,:)));
+        else
+            plot(time, u_array(i,:));
+        end
         grid();
         title(titles(i));
         xlabel('t [s]');

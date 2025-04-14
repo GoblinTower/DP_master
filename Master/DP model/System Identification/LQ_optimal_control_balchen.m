@@ -55,22 +55,17 @@ for i=1:N
     psi = y_meas(3);
 
     % Calculate discrete supply model matrices
-    [A_lin, B_lin, C_lin] = supply_discrete_matrices_si(A_si, B_si, C_si, psi, dt);
+    [A_lin, B_lin, C_lin] = dp_model_discrete_matrices_si(A_si, B_si, C_si, psi, dt);
 
     % Calculate LQ gain on deviation form
     [G, G1, G2, A_dev, B_dev, C_dev] = calculate_lq_deviation_gain(A_lin, B_lin, C_lin, Q, P);
 
     % Control input using LQ
     ref = setpoint(:,i);
-    if (run_kalman_filter)
-        % Use state from Kalman filter
-        u = u_prev + G1*(x_est - x_prev) + G2*(y_prev - ref);
-        x_prev = x_est;
-    else
-        % Use real state (assumed known, perfect information)
-        u = u_prev + G1*(x - x_prev) + G2*(y_prev - ref);
-        x_prev = x;
-    end
+
+    % Use state from Kalman filter
+    u = u_prev + G1*(x_est - x_prev) + G2*(y_prev - ref);
+    x_prev = x_est;
 
     % Store the values of state, measurements and input as old values for
     % the next iteration of control calculations.
@@ -93,32 +88,26 @@ for i=1:N
     %%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% Update Kalman gain %%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%
-    if (run_kalman_filter)
-        
-        % Delta u
-        du = u - u_prev;
-        
-        % Delta y
-        if (i==1)
-            dy = zeros(3,1);
-        else
-            dy = y_meas_array(:,i) - y_meas_array(:,i-1);
-        end
-
-        % [K,~,~,~] = dlqe(A_lin,eye(6),C_lin,W,V); 
-        % x_aposteriori = A_lin*x_aposteriori + B_lin*du + K*(dy - C_lin*x_aposteriori);
-        % dx_est = x_aposteriori;
-
-        % Update filter
-        [dx_est, Pcov, K] = kalman.UpdateFilter(du, dy, A_lin, B_lin, C_lin, W, V);
-
-        % Store data
-        K_array(:,i) = K(:);
-
-        % Calculate estimate
-        x_est = dx_est + x_est;
-       
+    
+    % Delta u
+    du = u - u_prev;
+    
+    % Delta y
+    if (i==1)
+        dy = zeros(3,1);
+    else
+        dy = y_meas_array(:,i) - y_meas_array(:,i-1);
     end
+
+    % Update filter
+    [dx_est, Pcov, K] = kalman.UpdateFilter(du, dy, A_lin, B_lin, C_lin, W, V);
+
+    % Store data
+    K_array(:,i) = K(:);
+
+    % Calculate estimate
+    x_est = dx_est + x_est;
+
 
     % Measurement with added noise
     if (use_noise_in_measurements)

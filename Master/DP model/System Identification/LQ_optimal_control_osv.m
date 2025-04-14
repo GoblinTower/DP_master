@@ -14,29 +14,29 @@ B_si = dsr.B;
 C_si = dsr.C;
 
 % Preallocate arrays
-t_array = zeros(1,N+1);         % Time array
+t_array = zeros(1,N+1);              % Time array
 
-x_array = zeros(12,N+1);        % State array from real process (unknown)
-x_array(:,1) = x0;              % Storing initial value of state
+x_array = zeros(12,N+1);             % State array from real process (unknown)
+x_array(:,1) = x0;                   % Storing initial value of state
 
-x_est_array = zeros(12,N+1);     % Storing estimated states (from Kalman, known)
-x_est_array(:,1) = x0_est;      % Storing initial assumed value of state
+x_est_array = zeros(n_dim+6,N+1);    % Storing estimated states (from Kalman, known)
+x_est_array(:,1) = x0_est;           % Storing initial assumed value of state
 
-y_meas_array = zeros(3,N+1);    % Measurement array
-y_meas_array(:,1) = y0_meas;    % Storing initial value of measurement 
+y_meas_array = zeros(3,N+1);         % Measurement array
+y_meas_array(:,1) = y0_meas;         % Storing initial value of measurement 
 
-u_array = zeros(4,N);           % Control input array
+u_array = zeros(3,N);                % Control input array
 
 % Initial values
-x_prev = zeros(12,1);      % Previus state 
-y_prev = zeros(3,1);      % previous output
-u_prev = zeros(4,1);      % Previous control signal
+x_prev = zeros(n_dim+6,1);           % Previus state 
+y_prev = zeros(3,1);                 % previous output
+u_prev = zeros(3,1);                 % Previous control signal
+    
+x = x0;                              % Initial real state 
+x_est = x0_est;                      % Initial state estimate
+y_meas = y0_meas;                    % Initial measured value         
 
-x = x0;                   % Initial real state 
-x_est = x0_est;           % Initial state estimate
-y_meas = y0_meas;         % Initial measured value         
-
-t = 0;                    % Current time
+t = 0;                               % Current time
 
 % Create linear kalman filter
 kalman = LinearKalmanFilter(x_aposteriori, p_aposteriori);
@@ -47,34 +47,29 @@ if (animate_kalman_estimate)
 end
 
 % Store Kalman gain
-K_array = zeros(12*3,N);   % Storing Kalman filter gain
+K_array = zeros((n_dim+6)*3,N);   % Storing Kalman filter gain
 
 for i=1:N
 
     % Calculate vessel heading
     psi = y_meas(3);
 
-    % Calculate discrete supply model matrices
-    [A_lin, B_lin, C_lin] = supply_discrete_matrices_si(A_si, B_si, C_si, psi, dt);
+    % Calculate discrete DP model matrices
+    [A_lin, B_lin, C_lin] = dp_model_discrete_matrices_si(A_si, B_si, C_si, psi, dt);
 
     % Calculate LQ gain on deviation form
     [G, G1, G2, A_dev, B_dev, C_dev] = calculate_lq_deviation_gain(A_lin, B_lin, C_lin, Q, P);
 
     % Control input using LQ
     ref = setpoint(:,i);
-    if (run_kalman_filter)
-        % Use state from Kalman filter
-        u = u_prev + G1*(x_est - x_prev) + G2*(y_prev - ref);
-        x_prev = x_est;
-    else
-        % Use real state (assumed known, perfect information)
-        u = u_prev + G1*(x - x_prev) + G2*(y_prev - ref);
-        x_prev = x;
-    end
+
+    % Use state from Kalman filter
+    u = u_prev + G1*(x_est - x_prev) + G2*(y_prev - ref);
+    x_prev = x_est;
 
     % Calculate RPM input to OSV model
-    % u = clip(u,[-50;-50;-50;-50], [50; 50; 50; 50]);
-    u_mod = [sign(u).*sqrt(abs(u)); deg2rad(azimuth_angle_1); deg2rad(azimuth_angle_2)];
+    u_mod = [sign(u(1))*sqrt(abs(u(1))); 0; sign(u(2))*sqrt(abs(u(2)));...
+        sign(u(3))*sqrt(abs(u(3))); deg2rad(azimuth_angle_1); deg2rad(azimuth_angle_2)];
 
     % Store the values of state, measurements and input as old values for
     % the next iteration of control calculations.
@@ -97,38 +92,30 @@ for i=1:N
     %%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% Update Kalman gain %%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%
-    if (run_kalman_filter)
-        
-        % Delta u
-        du = u - u_prev;
-        
-        % Delta y
-        if (i==1)
-            dy = zeros(3,1);
-        else
-            dy = y_meas_array(:,i) - y_meas_array(:,i-1);
-        end
-
-        % [K,~,~,~] = dlqe(A_lin,eye(6),C_lin,W,V); 
-        % x_aposteriori = A_lin*x_aposteriori + B_lin*du + K*(dy - C_lin*x_aposteriori);
-        % dx_est = x_aposteriori;
-
-        % Update filter
-        [dx_est, Pcov, K] = kalman.UpdateFilter(du, dy, A_lin, B_lin, C_lin, W, V);
-
-        % Store data
-        K_array(:,i) = K(:);
-
-        % Calculate estimate
-        x_est = dx_est + x_est;
-       
+    % Delta u
+    du = u - u_prev;
+    
+    % Delta y
+    if (i==1)
+        dy = zeros(3,1);
+    else
+        dy = y_meas_array(:,i) - y_meas_array(:,i-1);
     end
+
+    % Update filter
+    [dx_est, Pcov, K] = kalman.UpdateFilter(du, dy, A_lin, B_lin, C_lin, W, V);
+
+    % Store data
+    K_array(:,i) = K(:);
+
+    % Calculate estimate
+    x_est = dx_est + x_est;
 
     % Measurement with added noise
     if (use_noise_in_measurements)
-        y_meas = x(1:3) + normrnd(measurement_noise_mean, measurement_noise_std, 3, 1);
+        y_meas = [x(7);x(8);x(12)] + normrnd(measurement_noise_mean, measurement_noise_std, 3, 1);
     else
-        y_meas = x(1:3);
+        y_meas = [x(7);x(8);x(12)];
     end
 
     % Update time

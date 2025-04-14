@@ -1,12 +1,14 @@
-% Configuration script: LQ optimal control of supply model
+% Configuration script: LQ optimal control of OSV model
 
 % Add seed (meaning og life)
 rng(42,"twister");
 
-dt = 1.0;           % Timestep used in integration
+dt = 0.1;           % Timestep used in integration
 
-T = 2000;           % End time
+T = 500;            % End time
 N = ceil(T/dt);     % Number of sample steps
+
+n_dim = 3;          % Number of states in SI model
 
 % Select integration method
 % IntegrationMethod.Runge_Kutta_Fourth_Order
@@ -14,16 +16,16 @@ N = ceil(T/dt);     % Number of sample steps
 integration_method = IntegrationMethod.Runge_Kutta_Fourth_Order;
 
 % LQ control parameters
-Q = diag([0.01e1, 0.01e1, 0.01e1]);           % State weighting matrix
-P = 1.0*eye(4);                      % Input weighting matrix
+Q = diag([1e5, 1e5, 1e8]);                   % State weighting matrix
+P = 1.0*eye(3);                              % Input weighting matrix
 
 % Setpoints [North, East, Yaw]
 setpoint = zeros(3,N+1);
 for k=1:N
     time = k*dt;
-    if (time < 100)
+    if (time < 10)
         setpoint(:,k) = [0; 0; 0];
-    elseif (time < 1000)
+    elseif (time < 200)
         setpoint(:,k) = [10; 5; deg2rad(30)];
     else
         setpoint(:,k) = [-5; -5; deg2rad(45)];
@@ -31,28 +33,26 @@ for k=1:N
 end
 
 % Constant azimuth angles
-azimuth_angle_1 = 180;
-azimuth_angle_2 = 180;
+azimuth_angle_1 = 0;
+azimuth_angle_2 = 0;
 
 % Kalman filter
-run_kalman_filter = true;
+W = 100.0*eye(n_dim+6);              % Process noise
+V = 1.0*eye(3);                      % Measurement noise
 
-W = 100.0*eye(12);                % Process noise
-V = 1.0*eye(3);                % Measurement noise
+x0_est = zeros(n_dim+6,1);           % Initial state estimate
 
-x0_est = [0; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0];    % Initial state estimate
+p_aposteriori = 1.0*eye(n_dim+6);    % Aposteriori covariance estimate
+x_aposteriori = x0_est;              % Aposteriori state estimate
 
-p_aposteriori = 1.0*eye(12);     % Aposteriori covariance estimate
-x_aposteriori = x0_est;         % Aposteriori state estimate
-
-animate_kalman_estimate = true; % Animate kalman estimate
-animation_delay = 0.01;         % Animation speed (in seconds)
+animate_kalman_estimate = true;      % Animate kalman estimate
+animation_delay = 0.01;              % Animation speed (in seconds)
 
 % Initial values
 % x = [x, y, psi, u, v, r]
 x0 = [0; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0];       % Initial values of states (real)
 % y = [x, y, psi]
-y0_meas = x0(1:3);                      % Initial values of measurements
+y0_meas = x0(1:3);                               % Initial values of measurements
 
 % Measurement noise
 % This represent the noise added to the measurement vector from the supply

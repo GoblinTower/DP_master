@@ -21,12 +21,12 @@ for i=1:N
 
         case (IntegrationMethod.Forward_Euler)
             % Forward Euler
-            [xdot,U,M] = osv(x,u_array(:,i));
+            [xdot,U,M] = osv(x, u_array(:,i), 0, 0);
             x = x + xdot*dt;
 
         case (IntegrationMethod.Runge_Kutta_Fourth_Order)
             % Runge-Kutta 4th order
-            [~, x] = runge_kutta_4(@(t, x) osv(x, u_array(:,i)), t, x, dt);
+            [~, x] = runge_kutta_4(@(t, x) osv(x, u_array(:,i), 0, 0), t, x, dt);
     end
 
     % Update time

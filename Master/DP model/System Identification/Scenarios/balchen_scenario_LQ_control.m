@@ -31,8 +31,6 @@ for k=1:N
 end
 
 % Kalman filter
-run_kalman_filter = true;
-
 W = 1.0*eye(9);                 % Process noise
 V = 10.0*eye(3);                % Measurement noise
 
