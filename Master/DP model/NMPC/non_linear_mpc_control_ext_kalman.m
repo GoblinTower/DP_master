@@ -1,13 +1,15 @@
-% Nonlinear MPC applied to supply model
-% Two models can be used in the model based comparison in MPC
-% DP model by Fossen and reduced DP model (without the error term, b)
-clear, clc, close all;
+% Nonlinear MPC applied to supply model.
+% Two models can be used in the model based comparison in MPC:
+% DP model by Fossen and reduced DP model (without the error term, b).
+% Here the complete model of Fossen is used for control.
+% This script uses an extended Kalman filter.
+clear, clc, close all
 
 addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data
-run 'Scenarios\supply_scenario_non_linear_mpc_control';
+run 'Scenarios\supply_scenario_non_linear_mpc_extended_control';
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by T.I.
@@ -41,7 +43,7 @@ if (animate_kalman_estimate)
 end
 
 % Store Kalman gain
-K_array = zeros(6*3,N);         % Storing Kalman filter gain
+K_array = zeros(9*3,N);         % Storing Kalman filter gain
 
 for i=1:N
 
@@ -60,9 +62,6 @@ for i=1:N
         x_extended = [x; 0; 0; 0];
         u_sol = fmincon(@(u) non_linear_objective_function(u, ref, M, D, P, Q, x_extended, horizon_length, dt, 1), u0, [], [], [], [], [], [], [], options);
     end
-
-    % ADD SOME TEST CODE HERE
-    % FOR INTEGRAL GAIN
 
     % Store old value of optimal control input for initial guess in next
     % iteration (warm starting)
@@ -97,7 +96,7 @@ for i=1:N
     %%%%%%%%%%%%%%%%%%%%%%%%%%
     if (run_kalman_filter)
 
-        [Ad, Bd, Cd, Ad_dot, Bd_dot, Cd_dot] = dp_model_discrete_matrices(x_est, u, dt, M, D);
+        [Ad, Bd, Cd, Ad_dot, Bd_dot, Cd_dot] = dp_model_discrete_matrices(x_apriori, u, dt, M, D);
         
         % Measurement model update (time, k)
         y_apriori = x_est(1:3);
@@ -109,7 +108,7 @@ for i=1:N
         x_aposteriori = x_apriori + K*(y_meas_array(:,i) - y_apriori);
 
         % Apropri state estimate (time, k+1)
-        x_apriori = Ad*x_est + Bd*u;
+        x_apriori = Ad*x_aposteriori + Bd*u;
 
         % Aposteriori state error covariance matrix (time, k)
         p_aposteriori = (eye(9) - K*Cd_dot)*p_apriori*(eye(9) - K*Cd_dot)' + K*W*K';
@@ -118,6 +117,9 @@ for i=1:N
         p_apriori = Ad_dot*p_aposteriori*Ad_dot' + V;
 
         x_est = x_apriori;
+
+        % Store Kalman gain
+        K_array(:,i) = K(:);
     end
 
     % Update time

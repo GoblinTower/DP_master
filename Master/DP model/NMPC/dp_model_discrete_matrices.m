@@ -15,14 +15,14 @@ syms x y psi_angle u v r b1 b2 b3;
 syms X Y N;
 
 % Create rotation matrix between NED and vessel coordinates
-R = [cos(psi_angle), -sin(psi_angle), 0; sin(psi_angle), cos(psi_angle) 0; 0, 0, 1];
+R = rotation_matrix(psi_angle);
 
 % Solve for R
 
 % Calulcating A matrix
 A_symbolic = [
                 zeros(3,3), R, zeros(3,3); 
-                zeros(3,3), -inv(M)*D, -inv(M)*R;
+                zeros(3,3), -inv(M)*D, inv(M)*R;
                 zeros(3,3), zeros(3,3), zeros(3,3)
              ];
 

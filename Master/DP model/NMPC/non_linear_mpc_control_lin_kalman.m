@@ -44,7 +44,7 @@ if (animate_kalman_estimate)
 end
 
 % Store Kalman gain
-K_array = zeros(6*3,N);         % Storing Kalman filter gain
+K_array = zeros(9*3,N);         % Storing Kalman filter gain
 
 for i=1:N
 
@@ -105,6 +105,9 @@ for i=1:N
 
         % Calculate kalman gain
         [x_est, Pcov, K] = kalman.UpdateFilter(u, y_meas_array(:,i), Ad, Bd, Cd, W, V);
+
+        % Store Kalman gain
+        K_array(:,i) = K(:);
 
     end
 

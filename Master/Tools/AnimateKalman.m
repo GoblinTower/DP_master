@@ -1,6 +1,8 @@
 classdef AnimateKalman < handle
-% Simple plot that animates the ship position and position measurements
-%
+% Simple plot that animates the ship position and vessel heading.
+% Depicting both the measured position/heading and estimated
+% position/heading together with the setpoint.
+
     properties
         plot_estimated_position_handle        % Line handle to estimated position
         plot_measurement_position_handle      % Line handle to measured position
@@ -29,7 +31,7 @@ classdef AnimateKalman < handle
             obj.plot_measurement_position_handle = animatedline('Marker','x','Color','k',...
                 'DisplayName','Measured position', 'LineStyle','none');
             obj.plot_setpoint_position_handle = animatedline('Marker','o','Color','g',...
-                'MarkerSize',12,'MarkerFaceColor','g','DisplayName','Setpoint');
+                'MarkerSize',8,'DisplayName','Setpoint','MarkerFace','g','LineStyle','none');
             
             % Vessel heading plot
             subplot(1,2,2);
@@ -41,9 +43,9 @@ classdef AnimateKalman < handle
             obj.plot_estimated_psi_handle = animatedline('Color','b',...
                 'DisplayName','Estimated heading');
             obj.plot_measured_psi_handle = animatedline('Marker','x','Color','k',...
-                'DisplayName','Measured heading', 'LineStyle','none');
+                'DisplayName','Measured heading','LineStyle','none');
             obj.plot_setpoint_psi_handle = animatedline('Marker','o','Color','g',...
-                'MarkerSize',12,'MarkerFaceColor','g','DisplayName','Heading setpoint');
+                'MarkerSize',8,'DisplayName','Heading setpoint','MarkerFace','g','LineStyle','none');
             
             drawnow;
             

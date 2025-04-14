@@ -21,7 +21,7 @@ rotation = rotation_matrix(psi);
 % Transition matrix
 Ac = [
     zeros(3,3), rotation, zeros(3,3); 
-    zeros(3,3), -inv(M)*D, -inv(M)*rotation';
+    zeros(3,3), -inv(M)*D, inv(M)*rotation';
     zeros(3,3), zeros(3,3), zeros(3,3)
 ];
 

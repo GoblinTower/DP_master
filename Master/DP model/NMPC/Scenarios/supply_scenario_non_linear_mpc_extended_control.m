@@ -3,8 +3,7 @@
 % Add seed (meaning of life)
 rng(42,"twister");
 
-dt = 1.0;           % Timestep used in integration
-
+dt = 0.5;           % Timestep used in integration
 T = 150;            % End time
 N = ceil(T/dt);     % Number of sample steps
 
@@ -17,8 +16,8 @@ integration_method = IntegrationMethod.Runge_Kutta_Fourth_Order;
 
 % MPC control parameters
 horizon_length = 20;                 % Prediction horizon length
-Q = diag([1e8, 1e8, 1e10]);          % Error weighting matrix
-P = diag([1e-6, 1e-6, 1e-6]);        % Input weighting matrix
+Q = diag([1e14, 1e14, 1e16]);        % Error weighting matrix
+P = 1.0*eye(3);                      % Input weighting matrix
 
 options = optimoptions('fmincon', 'display', 'off');
 
@@ -30,7 +29,7 @@ setpoint = zeros(3, N + horizon_length - 1);
 n_setpoint = size(setpoint, 2);
 for k=1:n_setpoint
     time = k*dt;
-    if (time < 100)
+    if (time < 10)
         setpoint(:,k) = [0; 0; 0];
     elseif (time < 300)
         setpoint(:,k) = [10; 5; deg2rad(90)];
