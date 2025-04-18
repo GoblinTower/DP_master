@@ -3,8 +3,7 @@
 % using a non-linear MPC.
 
 dt = 1.0;           % Timestep used in integration
-
-T = 400;            % End time
+T = 100;            % End time
 N = ceil(T/dt);     % Number of sample steps
 
 % Select integration method
@@ -16,40 +15,48 @@ integration_method = IntegrationMethod.Runge_Kutta_Fourth_Order;
 
 % MPC control parameters
 horizon_length = 20;                 % Prediction horizon length
-Q = diag([1e8, 1e8, 1e10]);          % Error weighting matrix
-P = diag([1e-6, 1e-6, 1e-6]);        % Input weighting matrix
+% Q = diag([1e14, 1e14, 1e16]);        % Error weighting matrix
+Q = diag([1e14, 1e14, 1e18]);        % Error weighting matrix
+P = 1.0*eye(3);                      % Input weighting matrix
 
 options = optimoptions('fmincon', 'display', 'off');
+
+% Initial guess of control signal for non-linear optimization algorithm
+u0 = zeros(3,horizon_length);
 
 % Setpoints [North, East, Yaw]
 setpoint = zeros(3, N + horizon_length - 1);
 n_setpoint = size(setpoint, 2);
 for k=1:n_setpoint
     time = k*dt;
-    if (time < 100)
+    if (time < 25)
         setpoint(:,k) = [0; 0; 0];
     elseif (time < 300)
         setpoint(:,k) = [10; 5; deg2rad(90)];
     else
         setpoint(:,k) = [-5; -10; deg2rad(270)];
-        % setpoint(:,k) = [10; 5; deg2rad(90)];
     end
 end
 
 % Kalman filter
 run_kalman_filter = true;
 
-V = 1.0*eye(9);            % Process noise
-W = 1.0*eye(3);            % Measurement noise
-X_apriori = 1.0*eye(9);    % Apriori estimate covarianceS
+V = diag([1;1;1]);                          % Process noise
+W = diag([1;1;1;1;1;1;1e10;1e10;1e12]);     % Measurement noise
 
-% Supply model
+x0_est = [0; 0; 0; 0; 0; 0; 1e4; 1e4; 1e4]; % Initial state estimate
+
+p_aposteriori = 1.0*eye(9);                 % Aposteriori covariance estimate
+x_aposteriori = x0_est;                     % Aposteriori state estimate
+
+animate_kalman_estimate = true;             % Animate kalman estimate
+animation_delay = 0;                        % Animation speed (in seconds)
+
+% Initial values
 % x = [x, y, psi, u, v, r]
-x0 = [0; 0; 0; 0; 0; 0];                % Inital values of states
-
-% Linearized model with integral gain
-% x = [x, y, psi, u, v, r, b1, b2, b3]
-x_lin0 = [0; 0; 0; 0; 0; 0; 0; 0; 0];   % Inital values of states
+x0 = [0; 0; 0; 0; 0; 0];                % Initial values of states (real)
+% y = [x, y, psi]
+y0_meas = x0(1:3);                      % Initial values of measurements
 
 % Measurement noise
 % This represent the noise added to the measurement vector from the supply
@@ -61,13 +68,26 @@ use_noise_in_measurements = false;
 measurement_noise_mean = [0; 0; 0];
 measurement_noise_std = [0.2; 0.2; 0.1];
 
-use_wind_current_forces = true;
-if (use_wind_current_forces)
-    % wind_force = [1e5; 3e5; 1e6].*ones(3,N) + normrnd(0,0.1,3,N);       % Wind
-    current_force = [2e5; -3e5; 2e6].*ones(3,N) + normrnd(0,0.1,3,N);   % Current
+use_wind_forces = false;
+use_wave_forces = false;
+use_current_forces = true;
+
+if (use_wind_forces)
+    wind_forces = [5e4; 2e5; 1e5].*ones(3,N);
 else
-    % wind_force = zeros(3,N);                                            % Wind
-    current_force = zeros(3,N);                                         % Current
+    wind_forces = zeros(3,N);
+end
+
+if (use_wave_forces)
+    wave_forces = [5e4; 1e5; 0].*ones(3,N); 
+else
+    wave_forces = zeros(3,N);
+end
+
+if (use_current_forces)
+    current_forces = [1e5; 0; 0].*ones(3,N);
+else
+    current_forces = zeros(3,N);                                                    
 end
 
 % Wind parameters
@@ -80,15 +100,15 @@ Cy = 0.825;         % Wind coefficient with respect to sway
 Cn = 0.125;         % Wind coefficient with respect to yaw
 
 % Estimation of beta (angle of attack) and wind velocity
-variance = [0.1; 0.2]*dt;
+std = [0.1; 0.2];
+mean = [0; 0];
 start_values = [deg2rad(35); 10];
 
 % Gaussian random walk
 wind = zeros(2,N);
-wind(:,1) = [start_values(1), start_values(2)];
-
+wind(:,1) = [start_values(1); start_values(2)];
 for j=2:N
-    wind(:,j) = wind(:,j-1) + normrnd(0, variance, 2, 1);
+    wind(:,j) = wind(:,j-1) + normrnd(mean, std, 2, 1);
 end
 
 wind_beta = smooth(wind(1,:));

@@ -1,6 +1,5 @@
-classdef LinearKalmanFilter < handle
-% Simple Kalman filter class that allows for time varying state transition
-% matrix, input matrix and output matrix.
+classdef ExtendedKalmanFilter < handle
+% Extended Kalman filter for NMPC formulation
 
     properties
         x_apriori {mustBeNumeric}         % Apriori state vector
@@ -12,10 +11,10 @@ classdef LinearKalmanFilter < handle
     
         kalman_gain {mustBeNumeric}       % Kalman gain
     end
-    
+
     methods
-        
-        function obj = LinearKalmanFilter(x_init, p_init)
+
+        function obj = ExtendedKalmanFilter(x_init, p_init)
             % Constructor. Need initial state vector estimate and covariance matrix
             % estimate to start Kalman filter.
             %
@@ -26,23 +25,23 @@ classdef LinearKalmanFilter < handle
             obj.x_aposteriori = x_init;
             obj.p_aposteriori = p_init;
         end
-      
-        function [x_est, P, K] = UpdateFilter(obj, u, y, A, B, C, W, V)
+
+            function [x_est, P, K] = UpdateFilter(obj, u, y, dt, M, D, W, V)
             % This functions update the Kalman filter.
             %
             % INPUT:
-            % u                 : Input vector
-            % y                 : Output vector
-            % A                 : State transition matrix
-            % B                 : Input matrix
-            % C                 : Output matrix
+            % u                 : Input vector (k)
+            % y                 : Measurement (k)
+            % dt                : Timestep (k)
+            % M                 : Inertia matrix
+            % D                 : Hydrodynamic damping matrix
             % W                 : Process noise covariance matrix
             % V                 : Measurement noise covariance matrix
             %
             % OUTPUT:
-            % x                 : State estimate (aposteriori)
-            % P                 : Covariance matrix of state error (aposteriori)
-            % K                 : Kalman gain
+            % x                 : State estimate (k+1)
+            % P                 : Covariance matrix of state error (k+1)
+            % K                 : Kalman gain (k)
             %
            
             % Update covariance matrix for time step (k+1, apriori)

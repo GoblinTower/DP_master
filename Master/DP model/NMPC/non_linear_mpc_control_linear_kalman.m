@@ -1,6 +1,8 @@
-% Nonlinear MPC applied to supply model
-% Two models can be used in the model based comparison in MPC
-% DP model by Fossen and reduced DP model (without the error term, b)
+% Nonlinear MPC applied to supply model.
+% Two models can be used in the model based comparison in MPC:
+% DP model by Fossen and reduced DP model (without the error term, b).
+% Here the complete model of Fossen is used for control.
+% This script uses a linear  Kalman filter (assuming vessel heading is known).
 clear, clc, close all;
 
 addpath("Plots\");

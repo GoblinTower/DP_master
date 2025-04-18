@@ -44,9 +44,6 @@ save Log/dsr_osv_data t_array x_array u_array u_force_array u_squared;
 % Plot data
 plot_osv_states_path_input(t_array, x_array, u_array);
 
-disp('Hit enter to continue!')
-pause;
-
 % Generate State Space Model
 if (generate_state_space_model)
     run system_identification.m;

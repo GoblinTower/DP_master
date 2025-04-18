@@ -1,12 +1,20 @@
-% Script for implementing and testing non-linear MPC
+% Script for implementing and testing model predictive controller (MPC)
+% There are two modes:
+%
+% 1) Run linear MPC with fixed state transition matrix for the entire horizon
+%
+% 2) Run linear MPC with changing state transition matrix. It is assumed
+% that the yaw velocity is constant for the entire horizon. Thus the yaw
+% when calculating any matrix A(t) is psi(t) = psi(t0) + dpsi/dt(t0)*(t-t0)
+
 clear, clc, close all;
 
-addpath("..\Plots\");
+addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data
-% run 'Scenarios\supply_scenario_non_linear_mpc_control_tracking';
-run 'Scenarios\supply_scenario_non_linear_mpc_control_tracking_limits';
+% run 'Scenarios\supply_scenario_mpc_control';
+run 'Scenarios\supply_scenario_mpc_control_yaw_vel';
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by T.I.
@@ -17,13 +25,12 @@ run 'Scenarios\supply_scenario_non_linear_mpc_control_tracking_limits';
 Bc = [zeros(3,3); inv(M); zeros(3,3)];
 Cc = [eye(3), zeros(3,3), zeros(3,3)];
 
-% Dimension of semi-linear model
-r_dim = size(Bc, 2);
-m_dim = size(Cc, 1);
 n_dim = size(Bc, 1);
-z_dim = r_dim + n_dim + 2*m_dim;
+m_dim = size(Cc, 1);
+r_dim = size(Bc, 2);
 
-u0 = zeros(r_dim, horizon_length);
+% Initial guess for the MPC optimization problem
+z0 = zeros(r_dim + n_dim + 2*m_dim, 1);
 
 % Preallocate arrays
 t = 0;
@@ -31,7 +38,7 @@ t_array = zeros(1, N+1);       % Time
 u_array = zeros(r_dim, N);     % Control input
 
 % Real process
-x_array = zeros(6,N+1);   % States 
+x_array = zeros(6,N+1);        % States 
 x_array(:,1) = x0;
 x = x0;
 
@@ -44,11 +51,7 @@ x_lin = x_lin0;
 y_meas = x0(1:3);
 
 % Store gain
-K_array = zeros(n_dim*m_dim, N); 
-
-% Current waypoint index
-waypoint_index = 1;
-ref = [waypoints(:,1); ref_angle(waypoint_index)].*ones(m_dim, horizon_length);
+K_array = zeros(n_dim*m_dim, N);
 
 for i=1:N
 
@@ -70,33 +73,31 @@ for i=1:N
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% Calculate control signal u %%%
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%E1
+    ref = setpoint(:,i:(i+horizon_length-1));
+    ref = ref(:);                               % Must be a column vector
+                             
+    % Solve quadratic optimization problem
+    switch (integration_method)
+
+        case (IntegrationMethod.Forward_Euler)
+            [H, c, Ae, be] = calculate_mpc_standard_form(P, Q, A_lin, B_lin, C_lin, x_lin, horizon_length, ref);
+        case (IntegrationMethod.Runge_Kutta_Fourth_Order)
+            [H, c, Ae, be] = calculate_mpc_standard_form_constant_rotation_rate(P, Q, A_lin, B_lin, C_lin, x_lin, horizon_length, ref, dt, M, D);
+    end
     
-    % Change tracking when distance to next waypoint is less than some
-    % specified distance
-    if (norm(waypoints(:,waypoint_index) - x_lin(1:2)) < distance_to_update_setpoint ...
-            && waypoint_index ~= last_waypoint_index)
-        waypoint_index = waypoint_index + 1;
-        ref = [waypoints(:,waypoint_index); ref_angle(waypoint_index)].*ones(m_dim, horizon_length);
-    end
-
-    % Solve non-linear optimization problem
-    if (use_thruster_constraints)
-        previous_control_signal = u0(:,1);
-        [Ai, bi] = calculate_thruster_inequality_matrix(horizon_length, z_dim, previous_control_signal, max_inputs, max_delta_u);
-        u_sol = fmincon(@(u) non_linear_objective_function(u, ref, M, D, P, Q, x_lin, horizon_length, dt, 1), u0, Ai, bi, [], [], [], [], [], options);
-    else
-        u_sol = fmincon(@(u) non_linear_objective_function(u, ref, M, D, P, Q, x_lin, horizon_length, dt, 1), u0, [], [], [], [], [], [], [], options);
-    end
-
-    u0 = u_sol;
+    % Optimization solver
+    z = quadprog(H, c, [], [], Ae, be, [], [], z0, options);
+    
+    % Store previous value for warm starting
+    z0 = z; 
 
     % Get control signal
-    u = u_sol(:,1);
+    u = z(1:r_dim);
 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %%% Update model (Real process) %%%
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%
+    %%% Update model %%%
+    %%%%%%%%%%%%%%%%%%%%
     switch (integration_method)
         case (IntegrationMethod.Forward_Euler)
             % Forward Euler
@@ -126,7 +127,7 @@ for i=1:N
     %%%%%%%%%%%%%%%%%%%%%%%%%%
     if (run_kalman_filter)
         K = X_apriori*C_lin'*inv(C_lin*X_apriori*C_lin' + W);
-        X_posteriori = (eye(n_dim) - K*C_lin)*X_apriori*(eye(n_dim) - K*C_lin)' + K*W*K';
+        X_posteriori = (eye(9) - K*C_lin)*X_apriori*(eye(9) - K*C_lin)' + K*W*K';
         X_apriori = A_lin*X_posteriori*A_lin' + V;
     
         x_lin = x_lin + K*(y_meas - y_lin);
@@ -147,4 +148,8 @@ for i=1:N
 end
 
 % Plot data
-plot_supply_mpc_simple_waypoint(t_array, x_array, x_lin_array, K_array, u_array, waypoints);
+% plot_supply_linar_mpc_psi_constant(t_array, x_array, K_array, u_array, setpoint, true);
+plot_supply_linear_mpc_r_constant(t_array, x_array, K_array, u_array, setpoint, true);
+
+
+

@@ -2,9 +2,10 @@
 %%% using PRBS (PseudoRandom Binary Sequence)
 
 dt = 1.0;           % Timestep used in integration
-
 T = 3000;           % End time
 N = ceil(T/dt);     % Number of sample steps
+
+n_si_dim = 3;       % Number of states in system identification
 
 % Select integration method
 % IntegrationMethod.Runge_Kutta_Fourth_Order

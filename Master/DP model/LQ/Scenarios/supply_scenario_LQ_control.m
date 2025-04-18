@@ -55,7 +55,7 @@ y0_meas = x0(1:3);                      % Initial values of measurements
 % model before being fed to the Kalman filter of the linearized model
 % The vector represents measurement error in north position, east position
 % and yaw position respectively.
-use_noise_in_measurements = true;
+use_noise_in_measurements = false;
 
 measurement_noise_mean = [0; 0; 0];
 measurement_noise_std = [0.1; 0.1; deg2rad(0.1)];

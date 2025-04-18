@@ -3,7 +3,7 @@
 % Add seed (meaning of life)
 rng(42,"twister");
 
-dt = 1.0;           % Timestep used in integration
+dt = 1;           % Timestep used in integration
 
 T = 150;            % End time
 N = ceil(T/dt);     % Number of sample steps
@@ -25,39 +25,54 @@ options = optimoptions('fmincon', 'display', 'off');
 % Initial guess of control signal for non-linear optimization algorithm
 u0 = zeros(3,horizon_length);
 
-% Setpoints [North, East, Yaw]
-setpoint = zeros(3, N + horizon_length - 1);
-n_setpoint = size(setpoint, 2);
-for k=1:n_setpoint
-    time = k*dt;
-    if (time < 100)
-        setpoint(:,k) = [0; 0; 0];
-    elseif (time < 300)
-        setpoint(:,k) = [10; 5; deg2rad(90)];
-    else
-        setpoint(:,k) = [-5; -10; deg2rad(270)];
-    end
-end
-
 % Kalman filter (extended)
-run_kalman_filter = true;
+V = 1.0*eye(3);                         % Process noise
+W = 1.0*eye(9);                         % Measurement noise
 
-V = 1.0*eye(3);                 % Process noise
-W = 1.0*eye(9);                 % Measurement noise
+x0_est = [0; 0; 0; 0; 0; 0; 0; 0; 0];   % Initial state estimate
 
-x0_est = [0; 0; 0; 0; 0; 0; 0; 0; 0];    % Initial state estimate
+p_aposteriori = 1.0*eye(9);             % Aposteriori covariance estimate
+x_aposteriori = x0_est;                 % Aposteriori state estimate
 
-p_aposteriori = 1.0*eye(9);         % Aposteriori covariance estimate
-x_aposteriori = x0_est;             % Aposteriori state estimate
-
-animate_kalman_estimate = true; % Animate kalman estimate
-animation_delay = 0;            % Animation speed (in seconds)
+animate_kalman_estimate = true;         % Animate kalman estimate
+animation_delay = 0;                    % Animation speed (in seconds)
 
 % Initial values
 % x = [x, y, psi, u, v, r]
 x0 = [0; 0; 0; 0; 0; 0];                % Initial values of states (real)
 % y = [x, y, psi]
 y0_meas = x0(1:3);                      % Initial values of measurements
+
+% Path
+distance_to_update_setpoint = 5;
+
+waypoints = [20, 80, 100, 160, 200, 240, 300, 380, 400, 460; 
+             10, 60, 100, 60, 120, 180, 200, 300, 240, 260];
+
+waypoints = calculate_angles_waypoints(waypoints, x0(1:2));
+
+last_waypoint_index = size(waypoints, 2);
+
+show_path_plot = false;
+if (show_path_plot)
+    figure(1);
+    hold on;
+    plot(waypoints(2,:), waypoints(1,:), 'bo-');
+    title("waypoints");
+    xlabel("East");
+    ylabel("North");
+    legend({'Waypoints'}, 'Location', 'Best');
+    grid();
+    hold off;
+end
+
+% MPC thruster constraints
+use_thruster_constraints = true;
+
+max_delta_u = [5e5; 5e5; 5e8];
+max_inputs = [1e6; 1e6; 1e9];
+
+z_dim = 3 + 9 + 2*3;                    % r_dim + n_dim + 2*m_dim
 
 % Measurement noise
 % This represent the noise added to the measurement vector from the supply

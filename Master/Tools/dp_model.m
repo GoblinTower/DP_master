@@ -7,10 +7,10 @@ function x_dot = dp_model(t, x, u, M, D)
 Bc = [zeros(3,3); inv(M); zeros(3,3)];
         
 % Non-linear state transition matrix
-R = rotation_matrix(x(3));
+rotation = rotation_matrix(x(3));
 Ac = [
-    zeros(3,3), R, zeros(3,3); 
-    zeros(3,3), -inv(M)*D, -inv(M)*R; 
+    zeros(3,3), rotation, zeros(3,3); 
+    zeros(3,3), -inv(M)*D, inv(M)*rotation'; 
     zeros(3,3), zeros(3,3), zeros(3,3)
 ];
 

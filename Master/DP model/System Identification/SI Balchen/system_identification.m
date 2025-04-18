@@ -1,5 +1,4 @@
-clear, clc, close all;
-
+% Script for performing system identification of Balchen model data
 addpath("..\..\..\..\Libraries\DSR");
 
 % Fetch logged data from file
@@ -23,10 +22,10 @@ u_array = [data.u_array(1:3,:)];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % System identification parameters (DSR)
 L_sys = 3;              % Number of block rows in extended observability matrix
-n_sys = 3;              % Number of states
+n_sys = n_si_dim;       % Number of states
 g_sys = 0;              % Structure parameter
 M_sys = 1;
 
 [A,B,C,E,CF,F,x0] = dsr(y_array',u_array',L_sys,g_sys,L_sys,M_sys,n_sys);
 
-save ..\Log\ssm_dsr_balchen A B C;
+save ..\Log\ssm_dsr_balchen dt A B C;

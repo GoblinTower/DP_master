@@ -6,6 +6,8 @@ dt = 0.1;           % Timestep used in integration
 T = 7200;           % End time
 N = ceil(T/dt);     % Number of sample steps
 
+n_si_dim = 3;       % Number of states in system identification
+
 % Select integration method
 % IntegrationMethod.Runge_Kutta_Fourth_Order
 % IntegrationMethod.Forward_Euler
