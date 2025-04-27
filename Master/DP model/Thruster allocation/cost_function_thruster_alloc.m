@@ -2,9 +2,9 @@ function J = cost_function_thruster_alloc(z, alpha0, P, W, Q, Omega, rho, epsilo
     
     r_dim = size(P, 1);
     
-    f = z(1:3);
-    alpha = z(4);
-    s = z(5:7);
+    f = z(1:4);
+    alpha = z(5:6);
+    s = z(7:9);
 
     alpha_diff = alpha - alpha0;
 

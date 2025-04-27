@@ -5,7 +5,8 @@ addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data
-run 'Scenarios\supply_scenario_LQ_control_non_rotable_actuators_limit';
+% run 'Scenarios\supply_scenario_LQ_control_non_rot_act_limit';
+run 'Scenarios\supply_scenario_LQ_control_non_rot_act_limit_2_tunnel';
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by T.I.
@@ -45,8 +46,11 @@ if (animate_kalman_estimate)
     animate_kalman = AnimateKalman();
 end
 
+% Number of thrusters
+n_thrusters = size(T_conf,2);
+
 % Thruster allocation
-rpm_array = zeros(3,N);
+rpm_array = zeros(n_thrusters,N);
 
 % Store Kalman gain
 K_array = zeros(6*3,N);   % Storing Kalman filter gain
@@ -83,7 +87,7 @@ for i=1:N
     z = quadprog(Phi_quad, R_quad*p, A2, C2*p, A1, C1*p, [], [], [], options);
     
     % Get control forces
-    f = z(1:3);
+    f = z(1:n_thrusters);
     
     if (linear_force_rpm_relation)
         % Linear relation
@@ -126,10 +130,6 @@ for i=1:N
         else
             dy = y_meas_array(:,i) - y_meas_array(:,i-1);
         end
-
-        % [K,~,~,~] = dlqe(A_lin,eye(6),C_lin,W,V); 
-        % x_aposteriori = A_lin*x_aposteriori + B_lin*du + K*(dy - C_lin*x_aposteriori);
-        % dx_est = x_aposteriori;
 
         % Update filter
         [dx_est, Pcov, K] = kalman.UpdateFilter(du, dy, A_lin, B_lin, C_lin, W, V);
@@ -174,4 +174,8 @@ for i=1:N
 end
 
 % Plot data
-plot_supply_lq_alloc_no_disturbance(t_array, x_array, K_array, u_array, rpm_array, setpoint, true);
+if (n_thrusters == 3)
+    plot_supply_lq_alloc_no_disturbance(t_array, x_array, K_array, u_array, rpm_array, setpoint, true);
+elseif (n_thrusters == 4)
+    plot_supply_lq_alloc_2tunnel_no_disturbance(t_array, x_array, K_array, u_array, rpm_array, setpoint, true);
+end

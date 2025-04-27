@@ -7,11 +7,16 @@ function T = thruster_configuration_matrix(alpha)
 % Thruster setup
 main_port_propeller_y_distance = -3;
 main_starboard_propeller_y_distance = 3;
-azimuth_x_distance = 30;
+
+azimuth1_x_distance = 30;
+alpha1 = alpha(1);
+
+azimuth2_x_distance = -20;
+alpha2 = alpha(2);
 
 T = [
-        1, 1, cos(alpha);
-        0, 0, sin(alpha);
-        -main_port_propeller_y_distance, -main_starboard_propeller_y_distance, azimuth_x_distance*sin(alpha)
+        1, 1, cos(alpha1), cos(alpha2);
+        0, 0, sin(alpha1), sin(alpha2);
+        -main_port_propeller_y_distance, -main_starboard_propeller_y_distance, azimuth1_x_distance*sin(alpha1), azimuth2_x_distance*sin(alpha2)
     ];
 end

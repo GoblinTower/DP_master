@@ -5,7 +5,8 @@ addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data
-run 'Scenarios\supply_scenario_LQ_control_non_rotable_actuators';
+run 'Scenarios\supply_scenario_LQ_control_non_rot_act';
+% run 'Scenarios\supply_scenario_LQ_control_non_rot_act_2_tunnel'
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by T.I.
@@ -45,8 +46,11 @@ if (animate_kalman_estimate)
     animate_kalman = AnimateKalman();
 end
 
+% Number of thrusters
+n_thrusters = size(T_conf,2);
+
 % Thruster allocation
-rpm_array = zeros(3,N);
+rpm_array = zeros(n_thrusters,N);
 
 % Store Kalman gain
 K_array = zeros(6*3,N);   % Storing Kalman filter gain
@@ -167,4 +171,8 @@ for i=1:N
 end
 
 % Plot data
-plot_supply_lq_alloc_no_disturbance(t_array, x_array, K_array, u_array, rpm_array, setpoint, true);
+if (n_thrusters == 3)
+    plot_supply_lq_alloc_no_disturbance(t_array, x_array, K_array, u_array, rpm_array, setpoint, true);
+elseif (n_thrusters == 4)
+    plot_supply_lq_alloc_2tunnel_no_disturbance(t_array, x_array, K_array, u_array, rpm_array, setpoint, true);
+end

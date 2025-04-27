@@ -45,14 +45,17 @@ if (animate_kalman_estimate)
     animate_kalman = AnimateKalman();
 end
 
-% Thruster allocation
-rpm_array = zeros(3,N);              % RPM array
-angle_array = zeros(1,N);            % Azimuth angle
+animate_forces = AnimateForces(70, 8);
 
-alpha0 = deg2rad(0);                 % Azimuth starts in zero position
+% Thruster allocation
+rpm_array = zeros(4,N);              % RPM array
+angle_array = zeros(2,N);            % Azimuth angles
+slack_array = zeros(3,N);            % Slack variables
+
+alpha0 = [deg2rad(0); deg2rad(0)];   % Azimuths starts in zero position
 
 % Initial guess of thruster optimization variable
-z0 = zeros(7,1);
+z0 = zeros(9,1);
 
 % Store Kalman gain
 K_array = zeros(6*3,N);   % Storing Kalman filter gain
@@ -94,13 +97,16 @@ for i=1:N
         Q_thr, Omega_thr, rho, epsilon), z0, [], [], [], [], [], [], nonlin, options); %, options);
     
     % Thruster forces
-    f = z_sol(1:3);
+    f = z_sol(1:4);
 
     % Update previous azimuth position
-    alpha0 = z_sol(4);
+    alpha0 = z_sol(5:6);
 
     % Store solution for warm startup
     z0 = z_sol;
+
+    % Store slack variables
+    slack_array(:,i) = z_sol(7:9);
 
     % Store angle
     angle_array(:,i) = alpha0;
@@ -187,7 +193,10 @@ for i=1:N
         pause(animation_delay);
     end
 
+    animate_forces.UpdatePlot(x_est(3), u(1), u(2), u(3), 1e4, 1e4, 1e5);
+
 end
 
 % Plot data
-plot_supply_lq_alloc_azimuth_no_disturbance(t_array, x_array, K_array, u_array, rpm_array, angle_array, setpoint, true);
+plot_supply_lq_alloc_azimuth_no_disturbance(t_array, x_array, K_array, u_array, rpm_array, ...
+    angle_array, slack_array, setpoint, true);

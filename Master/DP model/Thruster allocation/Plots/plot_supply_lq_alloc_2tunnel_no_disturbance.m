@@ -1,4 +1,4 @@
-function plot_supply_lq_alloc_azimuth_no_disturbance(t, x, K, u, rpm, angle, slack, setpoint, save_plots)
+function plot_supply_lq_alloc_2_tunnel_no_disturbance(t, x, K, u, rpm, setpoint, save_plots)
     
     f1 = figure(1); % Plotting states
 
@@ -122,80 +122,39 @@ function plot_supply_lq_alloc_azimuth_no_disturbance(t, x, K, u, rpm, angle, sla
     %%%%%%%%%%%%%%%%%%%
     %%% Kalman gain %%%
     %%%%%%%%%%%%%%%%%%%
-    subplot(3,2,1);
-    plot(t(1:length_time), rpm(1,:));
+    subplot(2,2,1);
+    plot(t(1:length_time), rpm(1,:))
     grid();
     title('RPM main propeller (port)');
     xlabel('t [s]');
     ylabel('RPM');
 
-    subplot(3,2,2);
-    plot(t(1:length_time), rpm(2,:));
+    subplot(2,2,2);
+    plot(t(1:length_time), rpm(2,:))
     grid();
     title('RPM main propeller (starboard)');
     xlabel('t [s]');
     ylabel('RPM');
 
-    subplot(3,2,3);
-    plot(t(1:length_time), rpm(3,:));
+    subplot(2,2,3);
+    plot(t(1:length_time), rpm(3,:))
     grid();
-    title('RPM bow azimuth thruster');
+    title('Stern tunnel thruster');
     xlabel('t [s]');
     ylabel('RPM');
 
-    subplot(3,2,4);
-    plot(t(1:length_time), rpm(4,:));
+    subplot(2,2,4);
+    plot(t(1:length_time), rpm(4,:))
     grid();
-    title('RPM stern azimuth thruster');
+    title('Bow tunnel thruster');
     xlabel('t [s]');
     ylabel('RPM');
-
-    subplot(3,2,5);
-    plot(t(1:length_time), rad2deg(angle(1,:)));
-    grid();
-    title('Bow azimuth angle');
-    xlabel('t [s]');
-    ylabel('[°]');
-
-    subplot(3,2,6);
-    plot(t(1:length_time), rad2deg(angle(2,:)));
-    grid();
-    title('Stern azimuth angle');
-    xlabel('t [s]');
-    ylabel('[°]');
-
-    f6 = figure(6); % Plot of slack variable
-
-    length_time = size(slack,2);
-    %%%%%%%%%%%%%%%%%%%
-    %%% Kalman gain %%%
-    %%%%%%%%%%%%%%%%%%%
-    subplot(3,1,1);
-    plot(t(1:length_time), slack(1,:));
-    grid();
-    title('Slack variable (Force in north)');
-    xlabel('t [s]');
-    ylabel('N');
-
-    subplot(3,1,2);
-    plot(t(1:length_time), slack(2,:));
-    grid();
-    title('Slack variable (Force in east)');
-    xlabel('t [s]');
-    ylabel('N');
-
-    subplot(3,1,3);
-    plot(t(1:length_time), slack(3,:));
-    grid();
-    title('Slack variable (Momentum in yaw)');
-    xlabel('t [s]');
-    ylabel('Nm');
 
     if (save_plots)
-        save_plot(f1, "lq_no_dist_alloc_azimuth_states", "Results/LQ_no_dist");
-        save_plot(f2, "lq_no_dist_alloc_azimuth_path", "Results/LQ_no_dist");
-        save_plot(f3, "lq_no_dist_alloc_azimuth_inputs", "Results/LQ_no_dist");
-        save_plot(f5, "lq_no_dist_alloc_azimuth_thr", "Results/LQ_no_dist");
+        save_plot(f1, "lq_no_dist_alloc_states", "Results/LQ_no_dist");
+        save_plot(f2, "lq_no_dist_alloc_path", "Results/LQ_no_dist");
+        save_plot(f3, "lq_no_dist_alloc_inputs", "Results/LQ_no_dist");
+        save_plot(f5, "lq_no_dist_alloc_thr", "Results/LQ_no_dist");
     end
 
  end
