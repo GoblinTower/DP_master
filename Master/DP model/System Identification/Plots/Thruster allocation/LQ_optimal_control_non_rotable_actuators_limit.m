@@ -5,8 +5,8 @@ addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data
-% run 'Scenarios\supply_scenario_LQ_control_non_rot_act';
-run 'Scenarios\supply_scenario_LQ_control_non_rot_act_2_tunnel'
+% run 'Scenarios\supply_scenario_LQ_control_non_rot_act_limit';
+run 'Scenarios\supply_scenario_LQ_control_non_rot_act_limit_2_tunnel';
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by T.I.
@@ -79,15 +79,22 @@ for i=1:N
         x_prev = x;
     end
 
-    % Calculate thruster distribution
-    % Using nonrotatable actuators. Solve using Lagrange multipliers.
-    T = inv(W_thr)*T_conf'*inv(T_conf*inv(W_thr)*T_conf');
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%% Calculate thruster distribution %%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    p = [u; fmin; fmax; beta];
+    
+    z = quadprog(Phi_quad, R_quad*p, A2, C2*p, A1, C1*p, [], [], [], options);
+    
+    % Get control forces
+    f = z(1:n_thrusters);
+    
     if (linear_force_rpm_relation)
         % Linear relation
-        rpm_array(:,i) = inv(K_force)*T*u;
+        rpm_array(:,i) = inv(K_force)*f;
     else
         % Quadratic relation
-        quad = inv(K_force)*T*u;
+        quad = inv(K_force)*f;
         rpm_array(:,i) = sign(quad)*sqrt(abs(quad));
     end
 
@@ -123,10 +130,6 @@ for i=1:N
         else
             dy = y_meas_array(:,i) - y_meas_array(:,i-1);
         end
-
-        % [K,~,~,~] = dlqe(A_lin,eye(6),C_lin,W,V); 
-        % x_aposteriori = A_lin*x_aposteriori + B_lin*du + K*(dy - C_lin*x_aposteriori);
-        % dx_est = x_aposteriori;
 
         % Update filter
         [dx_est, Pcov, K] = kalman.UpdateFilter(du, dy, A_lin, B_lin, C_lin, W, V);

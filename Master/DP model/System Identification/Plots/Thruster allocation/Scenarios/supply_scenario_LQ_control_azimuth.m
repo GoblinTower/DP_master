@@ -95,26 +95,15 @@ Omega_thr = diag([1, 1]);
 
 % Power consumption weights
 P_thr = [1; 1; 1; 1];
-% P_thr = [0; 0; 0; 0];
+P_thr = [0; 0; 0; 0];
 
 % scalar weight
-rho = 10;
+rho = 1.0;
 
-epsilon = 1e-6; % Avoid divding by zero  
+epsilon = 1e-2; % Avoid divding by zero  
 
 % Is there a linear or quadratic relation between force and RPM (or pitch angle) 
 linear_force_rpm_relation = true;
 
 % Optimizaton options
 % options = optimoptions('fmincon', 'display', 'off');
-
-% 1: Port main propeller
-% 2: Stern main propeller
-% 3: Bow Azimuth thruster
-% 4: Stern Azimuth 
-thruster_positions = [
-                        -35, -35, 30, -20;      % Placement along surge axis 
-                        -3, 3, 0, 0             % Placement along sway axis
-                     ];
-
-thruster_names = ["PortMainProp1", "StarboardMainProp2", "BowAzimuth", "SternAzimuth"];

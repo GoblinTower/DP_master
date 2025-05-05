@@ -60,61 +60,68 @@ use_noise_in_measurements = false;
 measurement_noise_mean = [0; 0; 0];
 measurement_noise_std = [0.1; 0.1; deg2rad(0.1)];
 
+% Define thruster configuration matrix
+% First column: Main propeller port
+% Second column: Main propeller starboard
+% Third column: Bow tunnel
+main_propeller_y_distance = 3;
+thruster_x_distance = 30;
+T_conf = [1, 1, 0;
+          0, 0, 1;
+          main_propeller_y_distance, -main_propeller_y_distance, thruster_x_distance];
+
 % Define force coefficient matrix
 propeller_port_force_coefficient = 1000;
 propeller_starboard_force_coefficient = propeller_port_force_coefficient;
-azimuth_thruster_force_coefficient = 500;
+bow_thruster_force_coefficient = 500;
 K_force = diag([propeller_port_force_coefficient, propeller_starboard_force_coefficient, ...
-    azimuth_thruster_force_coefficient, azimuth_thruster_force_coefficient]);
-
-% Minimum and maximum force per thruster
-fmin = -[1e8; 1e8; 1e10; 1e10];
-fmax = [1e8; 1e8; 1e10; 1e10];
-
-% fmin = -[1e20; 1e20; 1e20; 1e20];
-% fmax = [1e20; 1e20; 1e20; 1e20];
-
-% alpha angle azimuths
-% Here it is assumed that there are no limitations on turning
-max_turn = deg2rad(1e5);
-alpha_min = [-max_turn; -max_turn];
-alpha_max = [max_turn; max_turn];
-
-% maximum allowed alpha change between timesteps
-alpha_diff_min = [deg2rad(-10); deg2rad(-10)];
-alpha_diff_max = [deg2rad(10); deg2rad(10)];
+    bow_thruster_force_coefficient]);
 
 % Force weight
-W_thr = diag([1, 1, 1, 1]);
+W_thr = diag([1, 1, 1]);
 
 % Slack variable weight (punish deviation between requested and actual force)
-Q_thr = diag([1e6, 1e6, 1e6]);
+Q_thr = diag([1e8, 1e8, 1e8]);
 
-% Azimuth angle change weight
-Omega_thr = diag([1, 1]);
+r_dim = 3;
+n_dim = 3;
 
-% Power consumption weights
-P_thr = [1; 1; 1; 1];
-% P_thr = [0; 0; 0; 0];
+Phi_quad = [
+                W_thr, zeros(r_dim, n_dim + 1);
+                zeros(n_dim, r_dim), Q_thr, zeros(n_dim, 1);
+                zeros(1,r_dim + n_dim + 1);
+           ];
 
-% scalar weight
-rho = 10;
+R_quad = zeros(r_dim + n_dim + 1, n_dim + r_dim + r_dim + 1);
+R_quad(end, end) = 1;
 
-epsilon = 1e-6; % Avoid divding by zero  
+A1 = [T_conf, -eye(n_dim), zeros(n_dim, 1)];
+
+C1 = [eye(n_dim), zeros(n_dim, r_dim + r_dim + 1)];
+
+A2 = [
+        -eye(r_dim, r_dim), zeros(r_dim, n_dim + 1);
+        eye(r_dim, r_dim), zeros(r_dim, n_dim + 1);
+        -eye(r_dim, r_dim), zeros(r_dim, n_dim), -ones(r_dim, 1);
+        eye(r_dim, r_dim), zeros(r_dim, n_dim), -ones(r_dim, 1);
+     ];
+
+C2 = [
+        zeros(r_dim, n_dim), -eye(r_dim, r_dim), zeros(r_dim, r_dim + 1);
+        zeros(r_dim, n_dim + r_dim), eye(r_dim, r_dim), zeros(r_dim, 1);
+        zeros(r_dim, n_dim + r_dim + r_dim + 1);
+        zeros(r_dim, n_dim + r_dim + r_dim + 1);
+     ];
+
+% Max and minimum force per thruster
+fmax = [1e8; 1e8; 1e10];
+fmin = -[1e8; 1e8; 1e10];
+
+% Beta (punishing large force values)
+beta = 1e0;
 
 % Is there a linear or quadratic relation between force and RPM (or pitch angle) 
 linear_force_rpm_relation = true;
 
 % Optimizaton options
-% options = optimoptions('fmincon', 'display', 'off');
-
-% 1: Port main propeller
-% 2: Stern main propeller
-% 3: Bow Azimuth thruster
-% 4: Stern Azimuth 
-thruster_positions = [
-                        -35, -35, 30, -20;      % Placement along surge axis 
-                        -3, 3, 0, 0             % Placement along sway axis
-                     ];
-
-thruster_names = ["PortMainProp1", "StarboardMainProp2", "BowAzimuth", "SternAzimuth"];
+options = optimoptions('quadprog','Display','off');

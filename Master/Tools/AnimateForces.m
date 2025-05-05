@@ -15,7 +15,7 @@ classdef AnimateForces < handle
         function obj = AnimateForces(length, breadth)
             
             % Initialized the figure
-            obj.ship_figure = figure;
+            obj.ship_figure = figure(200);
             obj.ship_figure_axes = axes;
 
             % Create ship shap
@@ -30,7 +30,7 @@ classdef AnimateForces < handle
       
         function UpdatePlot(obj, heading, force_north, force_east, momentum_yaw, scale_north, scale_east, scale_yaw)
 
-            cla(obj.ship_figure, 'reset');
+            cla(obj.ship_figure_axes);
             length = obj.ship_length; 
             breadth = obj.ship_breadth;
 
@@ -65,15 +65,18 @@ classdef AnimateForces < handle
                 current_momentum_shape = rotate(force_momentum_shape, -rad2deg(heading), [0,0]);
                 plot(obj.ship_figure_axes, current_momentum_shape);
             end
-            hold off
 
+            axes(obj.ship_figure_axes)
             axis equal;
+
+            hold off
 
             % Plot bar plot
             % name = ['Force surge', 'Force sway', 'Momentum east'];
             % values = [force_north, force_east, momentum_yaw];
             % bar(obj.ship_bar_axes, name, values);
 
+            drawnow;
         end
     end
 end

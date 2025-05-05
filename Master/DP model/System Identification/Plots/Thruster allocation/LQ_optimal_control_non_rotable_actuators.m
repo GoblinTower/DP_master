@@ -5,8 +5,8 @@ addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data
-% run 'Scenarios\supply_scenario_LQ_control_non_rot_act';
-run 'Scenarios\supply_scenario_LQ_control_non_rot_act_2_tunnel'
+run 'Scenarios\supply_scenario_LQ_control_non_rot_act';
+% run 'Scenarios\supply_scenario_LQ_control_non_rot_act_2_tunnel'
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by T.I.

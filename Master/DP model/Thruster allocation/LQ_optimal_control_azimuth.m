@@ -5,8 +5,7 @@ addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data
-% run 'Scenarios\supply_scenario_LQ_control_non_rot_act';
-run 'Scenarios\supply_scenario_LQ_control_non_rot_act_2_tunnel'
+run 'Scenarios\supply_scenario_LQ_control_azimuth';
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by T.I.
@@ -46,11 +45,19 @@ if (animate_kalman_estimate)
     animate_kalman = AnimateKalman();
 end
 
-% Number of thrusters
-n_thrusters = size(T_conf,2);
-
 % Thruster allocation
-rpm_array = zeros(n_thrusters,N);
+animate_forces = AnimateForces(70, 8);
+animate_thrusters = AnimateThrusters(70, 8, thruster_positions, thruster_names);
+
+rpm_array = zeros(4,N);              % RPM array
+angle_array = zeros(2,N);            % Azimuth angles
+slack_array = zeros(3,N);            % Slack variables
+f_array = zeros(4,N);                % Number of thrusters
+
+alpha0 = [deg2rad(0); deg2rad(0)];   % Azimuths starts in zero position
+
+% Initial guess of thruster optimization variable
+z0 = zeros(9,1);
 
 % Store Kalman gain
 K_array = zeros(6*3,N);   % Storing Kalman filter gain
@@ -79,15 +86,40 @@ for i=1:N
         x_prev = x;
     end
 
-    % Calculate thruster distribution
-    % Using nonrotatable actuators. Solve using Lagrange multipliers.
-    T = inv(W_thr)*T_conf'*inv(T_conf*inv(W_thr)*T_conf');
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%% Calculate thruster distribution %%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Non-linear constraint function
+    nonlin = @(z_) non_linear_constraints_alloc(z_, u, alpha0, fmin, fmax, ...
+        alpha_min, alpha_max, alpha_diff_min, alpha_diff_max);
+
+    options = optimoptions('fmincon','Algorithm','sqp');
+    % Optimization
+    z_sol = fmincon(@(z) cost_function_thruster_alloc(z, alpha0, P_thr, W_thr, ...
+        Q_thr, Omega_thr, rho, epsilon), z0, [], [], [], [], [], [], nonlin, options); %, options);
+    
+    % Thruster forces
+    f = z_sol(1:4);
+
+    % Update previous azimuth position
+    alpha0 = z_sol(5:6);
+
+    % Store solution for warm startup
+    z0 = z_sol;
+
+    % Store slack variables
+    slack_array(:,i) = z_sol(7:9);
+
+    % Store angles and thruster force values
+    angle_array(:,i) = alpha0;
+    f_array(:,i) = f;
+    
     if (linear_force_rpm_relation)
         % Linear relation
-        rpm_array(:,i) = inv(K_force)*T*u;
+        rpm_array(:,i) = inv(K_force)*f;
     else
         % Quadratic relation
-        quad = inv(K_force)*T*u;
+        quad = inv(K_force)*f;
         rpm_array(:,i) = sign(quad)*sqrt(abs(quad));
     end
 
@@ -123,10 +155,6 @@ for i=1:N
         else
             dy = y_meas_array(:,i) - y_meas_array(:,i-1);
         end
-
-        % [K,~,~,~] = dlqe(A_lin,eye(6),C_lin,W,V); 
-        % x_aposteriori = A_lin*x_aposteriori + B_lin*du + K*(dy - C_lin*x_aposteriori);
-        % dx_est = x_aposteriori;
 
         % Update filter
         [dx_est, Pcov, K] = kalman.UpdateFilter(du, dy, A_lin, B_lin, C_lin, W, V);
@@ -164,15 +192,14 @@ for i=1:N
         animate_kalman.UpdatePlot(t_array(i), x_est_array(1,i), x_est_array(2,i), x_est_array(3,i),...
             y_meas_array(1,i), y_meas_array(2,i), y_meas_array(3,i),...
             setpoint(1,i), setpoint(2,i), setpoint(3,i));
-        
+
         pause(animation_delay);
     end
 
+    animate_forces.UpdatePlot(x_array(3,i), u(1), u(2), u(3), 1e4, 1e4, 1e5);
+    animate_thrusters.UpdatePlot(t_array(i), x_array(3,i), f, [0, 0, alpha0(1), alpha0(2)], 1e4);
 end
 
 % Plot data
-if (n_thrusters == 3)
-    plot_supply_lq_alloc_no_disturbance(t_array, x_array, K_array, u_array, rpm_array, setpoint, true);
-elseif (n_thrusters == 4)
-    plot_supply_lq_alloc_2tunnel_no_disturbance(t_array, x_array, K_array, u_array, rpm_array, setpoint, true);
-end
+plot_supply_lq_alloc_azimuth_no_disturbance(t_array, x_array, K_array, u_array, rpm_array, ...
+    angle_array, slack_array, setpoint, true);
