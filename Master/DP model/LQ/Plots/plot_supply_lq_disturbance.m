@@ -1,7 +1,6 @@
-function plot_supply_lq_disturbance(t, x, K, u, wind_abs, wind_beta, wind_force, current_force, setpoint, save_plots)
+function plot_supply_lq_disturbance(t, x, K, u, wind_abs, wind_beta, wind_force, current_force, wave_force, setpoint, save_plots)
     
     f1 = figure(1); % Plotting states
-
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% Velocity and angular momentum in BODY frame %%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -63,7 +62,6 @@ function plot_supply_lq_disturbance(t, x, K, u, wind_abs, wind_beta, wind_force,
     hold off
     
     f2 = figure(2); % Plot depicting the path in the x-y plane
-    
     %%%%%%%%%%%%
     %%% Path %%%
     %%%%%%%%%%%%
@@ -78,7 +76,6 @@ function plot_supply_lq_disturbance(t, x, K, u, wind_abs, wind_beta, wind_force,
     legend({'Path', 'Start position', "End position"}, 'Location', 'Best');
 
     f3 = figure(3); % Plot depicting input signals
-    
     length_time = size(u,2);
     %%%%%%%%%%%%%%%%%%%%%
     %%% Bow thrusters %%%
@@ -105,7 +102,6 @@ function plot_supply_lq_disturbance(t, x, K, u, wind_abs, wind_beta, wind_force,
     ylabel('Momentum [Nm]');
 
     f4 = figure(4); % Plot Kalman gain
-    
     length_time = size(K,2);
     %%%%%%%%%%%%%%%%%%%
     %%% Kalman gain %%%
@@ -117,7 +113,6 @@ function plot_supply_lq_disturbance(t, x, K, u, wind_abs, wind_beta, wind_force,
     ylabel('Gain value');
 
     f5 = figure(5); % Plot wind
-    
     length_time = size(wind_abs,1);
     %%%%%%%%%%%%
     %%% Wind %%%
@@ -158,7 +153,6 @@ function plot_supply_lq_disturbance(t, x, K, u, wind_abs, wind_beta, wind_force,
     ylabel('τ_s [Nm]');
 
     f6 = figure(6); % Plot current forces
-
     length_time = size(current_force,2);
     %%%%%%%%%%%%%%%
     %%% Current %%%
@@ -166,30 +160,57 @@ function plot_supply_lq_disturbance(t, x, K, u, wind_abs, wind_beta, wind_force,
     subplot(1,3,1);
     plot(t(1:length_time), current_force(1,1:length_time))
     grid();
-    title('Force in surge');
+    title('Current force in surge');
     xlabel('t [s]');
     ylabel('F_s [N]');
 
     subplot(1,3,2);
     plot(t(1:length_time), current_force(2,1:length_time))
     grid();
-    title('Force in sway');
+    title('Current force in sway');
     xlabel('t [s]');
     ylabel('F_s [N]');
 
     subplot(1,3,3);
     plot(t(1:length_time), current_force(3,1:length_time))
     grid();
-    title('Momentum in yaw');
+    title('Current momentum in yaw');
+    xlabel('t [s]');
+    ylabel('τ_s [Nm]');
+
+    f7 = figure(7); % Plot wave forces
+    length_time = size(wave_force,2);
+    %%%%%%%%%%%%%%%%%%
+    %%% Wave force %%%
+    %%%%%%%%%%%%%%%%%%
+    subplot(1,3,1);
+    plot(t(1:length_time), wave_force(1,1:length_time))
+    grid();
+    title('Wave force in surge');
+    xlabel('t [s]');
+    ylabel('F_s [N]');
+
+    subplot(1,3,2);
+    plot(t(1:length_time), wave_force(2,1:length_time))
+    grid();
+    title('Wave force in sway');
+    xlabel('t [s]');
+    ylabel('F_s [N]');
+
+    subplot(1,3,3);
+    plot(t(1:length_time), wave_force(3,1:length_time))
+    grid();
+    title('Wave momentum in yaw');
     xlabel('t [s]');
     ylabel('τ_s [Nm]');
 
     if (save_plots)
-        save_plot(f1, "lq_no_dist_states", "Results/LQ_dist");
-        save_plot(f2, "lq_no_dist_path", "Results/LQ_dist");
-        save_plot(f3, "lq_no_dist_inputs", "Results/LQ_dist");
-        save_plot(f5, "lq_no_dist_wind", "Results/LQ_dist");
-        save_plot(f6, "lq_no_dist_current", "Results/LQ_dist");
+        save_plot(f1, "lq_dist_states", "Results/LQ_dist");
+        save_plot(f2, "lq_dist_path", "Results/LQ_dist");
+        save_plot(f3, "lq_dist_inputs", "Results/LQ_dist");
+        save_plot(f5, "lq_dist_wind", "Results/LQ_dist");
+        save_plot(f6, "lq_dist_current", "Results/LQ_dist");
+        save_plot(f6, "lq_dist_wave", "Results/LQ_dist");
     end
 
  end

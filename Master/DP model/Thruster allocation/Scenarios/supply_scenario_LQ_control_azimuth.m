@@ -42,7 +42,7 @@ p_aposteriori = 1.0*eye(6);     % Aposteriori covariance estimate
 x_aposteriori = x0_est;         % Aposteriori state estimate
 
 animate_kalman_estimate = true; % Animate kalman estimate
-animation_delay = 0.01;         % Animation speed (in seconds)
+animation_delay = 0.1;          % Animation speed (in seconds)
 
 % Initial values
 % x = [x, y, psi, u, v, r]

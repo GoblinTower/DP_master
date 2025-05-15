@@ -5,7 +5,7 @@ rng(42,"twister");
 
 dt = 1.0;           % Timestep used in integration
 
-T = 800;            % End time
+T = 1200;           % End time
 N = ceil(T/dt);     % Number of sample steps
 
 % Select integration method
@@ -15,6 +15,7 @@ integration_method = IntegrationMethod.Runge_Kutta_Fourth_Order;
 
 % LQ control parameters
 Q = diag([1e9, 1e9, 1e11]);             % State weighting matrix
+Q = diag([1e5, 1e5, 1e8]);             % State weighting matrix
 P = 1.0*eye(3);                         % Input weighting matrix
 
 % Kalman filter
@@ -23,7 +24,7 @@ run_kalman_filter = true;
 W = 1.0*eye(6);                         % Process noise
 V = 1.0*eye(3);                         % Measurement noise
 
-x0_est = [0; 0; 0; 0; 0; 0];            % Initial state estimate
+x0_est = [0; 0; 0; 0; 0; 0];  % Initial state estimate
 
 p_aposteriori = 1.0*eye(6);             % Aposteriori covariance estimate
 x_aposteriori = x0_est;                 % Aposteriori state estimate

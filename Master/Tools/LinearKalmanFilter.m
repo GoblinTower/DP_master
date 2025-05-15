@@ -1,6 +1,15 @@
 classdef LinearKalmanFilter < handle
 % Simple Kalman filter class that allows for time varying state transition
 % matrix, input matrix and output matrix.
+% It assumes that the system takes the following discrete form:
+%
+% x(k+1) = Ax(k) + Bu(k) + w(k)
+% y(k) = Cx(k) + v(k)
+%
+% Where w(k) and v(k) are uncorrelated zero mean white noise processes.
+% The following notation is introduced: W = E[w(k)w(k)'] and V =
+% E[v(k)v(k)']. A is the state transition matrix, B is the input matrix,
+% D is the output matrix and E is the direct input to output matrix.
 
     properties
         x_apriori {mustBeNumeric}         % Apriori state vector
@@ -36,6 +45,7 @@ classdef LinearKalmanFilter < handle
             % A                 : State transition matrix
             % B                 : Input matrix
             % C                 : Output matrix
+            % E                 : Direct input to output matrix
             % W                 : Process noise covariance matrix
             % V                 : Measurement noise covariance matrix
             %
@@ -49,7 +59,7 @@ classdef LinearKalmanFilter < handle
             obj.p_apriori = A*obj.p_aposteriori*A' + W;
 
             % Update Kalman gain
-            obj.kalman_gain = obj.p_apriori*C'*inv(C*obj.p_apriori*C' + V);
+            obj.kalman_gain = obj.p_apriori*C'/(C*obj.p_apriori*C' + V);
 
             % Compute predicted state (k+1, apriori)
             obj.x_apriori = A*obj.x_aposteriori + B*u;
@@ -57,10 +67,10 @@ classdef LinearKalmanFilter < handle
             % Compute output (k, apriori)
             obj.y_apriori = C*obj.x_aposteriori;
 
-            % Compute the corrected value 
+            % Compute the corrected value (k+1, aposteriori)
             obj.x_aposteriori = obj.x_apriori + obj.kalman_gain*(y - obj.y_apriori);
 
-            % Update covariance matrix
+            % Update covariance matrix (k+1, aposteriori)
             dim_n = size(A,1);
             obj.p_aposteriori = (eye(dim_n) - obj.kalman_gain*C)*obj.p_apriori*...
                 (eye(dim_n) - obj.kalman_gain*C)' + obj.kalman_gain*V*obj.kalman_gain';

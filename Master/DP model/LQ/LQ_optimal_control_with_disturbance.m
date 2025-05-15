@@ -5,7 +5,7 @@ addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data
-run 'Scenarios\supply_scenario_LQ_control';
+run 'Scenarios\supply_scenario_LQ_control_with_disturbance';
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by Thor
@@ -14,6 +14,8 @@ run 'Scenarios\supply_scenario_LQ_control';
 
 % Preallocate arrays
 t_array = zeros(1,N+1);                 % Time array
+ 
+wind_force_array = zeros(3,N);          % Wind force array
 
 x_array = zeros(n_dim,N+1);             % State array from real process (unknown)
 x_array(:,1) = x0;                      % Storing initial value of state
@@ -72,18 +74,24 @@ for i=1:N
     % the next iteration of control calculations.
     y_prev = y_meas;
 
+    % Get wind forces and momentum
+    % The actual wind forces will depend on the real ship position, hence
+    % we use the state variables from the 'real' process.
+    wind_force = wind_force_calc(wind_abs(i), wind_beta(i), x(3), x(4), x(5), rho, Af, Al, L, Cx, Cy, Cn);
+    wind_force_array(:,i) = wind_force;
+
     %%%%%%%%%%%%%%%%%%%%
     %%% Update model %%%
     %%%%%%%%%%%%%%%%%%%%
     switch (integration_method)
         case (IntegrationMethod.Forward_Euler)
             % Forward Euler
-            xdot = supply(x, u);
+            xdot = supply_model(t, x, u, M, D, wind_force, wave_force(:,i), current_force(:,i));
             x = x + xdot*dt;
 
         case (IntegrationMethod.Runge_Kutta_Fourth_Order)
             % Runge-Kutta 4th order
-            [~, x] = runge_kutta_4(@(t, x) supply(x, u), t, x, dt);
+            [~, x] = runge_kutta_4(@(t, x) supply_model(t, x, u, M, D, wind_force, wave_force(:,i), current_force(:,i)), t, x, dt);
     end
 
     % Measurement with added noise
@@ -195,4 +203,4 @@ for i=1:N
 end
 
 % Plot data
-plot_supply_lq_no_disturbance(t_array, x_array, K_array, u_array, setpoint, true);
+plot_supply_lq_disturbance(t_array, x_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true);
