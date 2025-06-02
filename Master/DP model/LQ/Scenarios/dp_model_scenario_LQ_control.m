@@ -1,11 +1,12 @@
-% Configuration script: LQ optimal control of supply model
+% Configuration script: LQ optimal control using supply model
+% as process and DP model for control and filtering.
 
 % Add seed (meaning of life)
 rng(42,"twister");
 
 dt = 1.0;           % Timestep used in integration
 
-T = 800;            % End time
+T = 1000;           % End time
 N = ceil(T/dt);     % Number of sample steps
 
 % Select integration method
@@ -35,33 +36,14 @@ end
 %%%%%%%%%%%%%%%%%%%%%
 run_kalman_filter = true;
 
-W = 1*eye(6);                                     % Process noise
-V = 10*eye(3);                                    % Measurement noise
+W = diag([1e2, 1e2, 1e2, 1e2, 1e2, 1e2, 1e12, 1e12, 1e12]);   % Process noise
+V = 10*eye(3);                                                % Measurement noise
 
-kalman_model = KalmanModel.IntegratorIncluded;         % Select Kalman filter model
+x0_est = [0; 0; 0; 0; 0; 0; 0; 0; 0];             % Initial state estimate
+n_kal_dim = size(x0_est,1);                       % Size of state matrix in Kalman filter
+G_lin = eye(n_kal_dim);                           % Process noise matrix
 
-if (kalman_model == KalmanModel.DeviationForm)
-    x0_est = [0; 0; 0; 0; 0; 0];                  % Initial state estimate
-    n_kal_dim = size(x0_est,1);                   % Size of state matrix in Kalman filter
-    G_lin = eye(n_kal_dim);                       % Process noise matrix
-
-    dx_aposteriori = x0_est;                      % Aposteriori state estimate
-
-elseif (kalman_model == KalmanModel.IntegratorIncluded)
-    x0_est = [0; 0; 0; 0; 0; 0; 0; 0; 0];         % Initial state estimate (includes process noise on u, v and p)
-    n_kal_dim = size(x0_est,1);                   % Size of state matrix in Kalman filter
-    G_lin = [zeros(3); eye(3)];                   % Process noise matrix
-
-    x_aposteriori = x0_est;                       % Aposteriori state estimate
-
-elseif (kalman_model == KalmanModel.Normal)
-    x0_est = [0; 0; 0; 0; 0; 0];                  % Initial state estimate
-    n_kal_dim = size(x0_est,1);                   % Size of state matrix in Kalman filter
-    G_lin = eye(n_kal_dim);                       % Process noise matrix
-
-    x_aposteriori = x0_est;                       % Aposteriori state estimate
-
-end
+x_aposteriori = x0_est;                           % Aposteriori state estimate
 
 animate_kalman_estimate = true;                   % Animate kalman estimate
 animation_delay = 0.01;                           % Animation speed (in seconds)
@@ -72,7 +54,7 @@ animation_delay = 0.01;                           % Animation speed (in seconds)
 % x = [x, y, psi, u, v, r]
 % y = [x, y, psi]
 
-% x0 = [0; 0; 0; 0; 0; 0];                          % Initial values of states (real)
+% x0 = [0; 0; 0; 0; 0; 0];                        % Initial values of states (real)
 x0 = [0.5; 0.5; deg2rad(2); 0; 0; 0];             % Initial values of states (real)
 n_dim = size(x0,1);                               % Size of state matrix in process model
 
@@ -92,17 +74,19 @@ measurement_noise_std = [0.1; 0.1; deg2rad(0.1)];
 %%%%%%%%%%%%%%%%%%%%%%%
 %%% External forces %%%
 %%%%%%%%%%%%%%%%%%%%%%%
-use_current_force = true;
-use_wave_force = true;
+use_current_force = false;
+use_wave_force = false;
+use_wind_force = false;
 
 % Current
 current_variance = [1e3; 1e3; 0];
+% current_variance = [0; 0; 0];
 current_start_values = [1e5; 2e5; 0];
 
 current_force = zeros(3,N);
-current_force(:,1) = current_start_values;
 % Gaussian random walk
 if (use_current_force)
+    current_force(:,1) = current_start_values;
     for j=2:N
         current_force(:,j) = current_force(:,j-1) + normrnd(0, current_variance, 3, 1);
     end
@@ -110,12 +94,13 @@ end
 
 % Wave
 wave_variance = [1e2; 1e2; 1e2];
-wave_start_values = [1e3; 3e2; 5e2];
+% wave_variance = [0; 0; 0];
+wave_start_values = [1e4; 3e4; 5e2];
 
 wave_force = zeros(3,N);
-wave_force(:,1) = wave_start_values;
 % Gaussian random walk
 if (use_wave_force)
+    wave_force(:,1) = wave_start_values;
     for j=2:N
         wave_force(:,j) = wave_force(:,j-1) + normrnd(0, wave_variance, 3, 1);
     end
@@ -135,10 +120,12 @@ wind_variance = [0.1; 0.2]*dt;
 wind_start_values = [deg2rad(35); 10];
 
 wind = zeros(2,N);
-wind(:,1) = [wind_start_values(1), wind_start_values(2)];
 % Gaussian random walk
-for j=2:N
-    wind(:,j) = wind(:,j-1) + normrnd(0, wind_variance, 2, 1);
+if (use_wind_force)
+    wind(:,1) = [wind_start_values(1); wind_start_values(2)];
+    for j=2:N
+        wind(:,j) = wind(:,j-1) + normrnd(0, wind_variance, 2, 1);
+    end
 end
 
 wind_beta = smooth(wind(1,:));

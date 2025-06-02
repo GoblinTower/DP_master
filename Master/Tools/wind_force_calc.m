@@ -28,18 +28,20 @@ function force = wind_force_calc(v_wind, beta, psi, u, v, rho, Af, Al, L, Cx, Cy
     v_rw = v - v_w;
 
     W_rw = sqrt(u_rw^2 + v_rw^2);
-    gamma = -atan2(v_rw, u_rw);
+
+    % Calculate relative angle of attack with respect to bow
+    gamma_rw = -atan2(v_rw, u_rw);
 
     % Dynamic pressure of the apparent wind
     q = 0.5*rho*W_rw^2;
 
     % Wind force in surge
-    force(1) = -q*Cx*cos(psi)*Af;
+    force(1) = -q*Cx*cos(gamma_rw)*Af;
 
     % Wind force in sway
-    force(2) = q*Cy*sin(psi)*Al;
+    force(2) = q*Cy*sin(gamma_rw)*Al;
 
     % Momentum in yaw
-    force(3) = q*Cn*sin(2*psi)*Al*L;
+    force(3) = q*Cn*sin(2*gamma_rw)*Al*L;
 
 end

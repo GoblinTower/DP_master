@@ -25,6 +25,7 @@ wind_force= zeros(3,1);
 
 % Real process
 x_array = zeros(6,N+1);   % States 
+x_est_array = zeros(6,N+1);
 x_array(:,1) = x0;
 x = x0;
 
@@ -78,7 +79,7 @@ for i=1:N
     % The actual wind forces will depend on the real ship position, hence
     % we use the state variables from the 'real' process.
     wind = wind_force_calc(wind_abs(i), wind_beta(i), x(3), x(4), x(5), rho, Af, Al, L, Cx, Cy, Cn);
-
+    
     %%%%%%%%%%%%%%%%%%%%
     %%% Update model %%%
     %%%%%%%%%%%%%%%%%%%%
@@ -90,7 +91,7 @@ for i=1:N
 
         case (IntegrationMethod.Runge_Kutta_Fourth_Order)
             % Runge-Kutta 4th order
-            [~, x] = runge_kutta_4(@(t, x) supply_model(t, x, u, M, D, wind, current_force(:,i)), t, x, dt);
+            [~, x] = runge_kutta_4(@(t, x) supply_model(t, x, u, M, D, wind, wave_force(:,i), current_force(:,i)), t, x, dt);
     end
 
     % Measurement with added noise
@@ -126,6 +127,7 @@ for i=1:N
     x_array(:,i+1) = x;
     u_array(:,i) = u;
     wind_force(:,i) = wind;
+    x_est_array(:,i+1) = x_est;
 
     x_prev = x;
     u_prev = u;

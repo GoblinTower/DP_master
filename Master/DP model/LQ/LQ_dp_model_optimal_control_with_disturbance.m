@@ -5,7 +5,7 @@ addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data
-run 'Scenarios\supply_scenario_LQ_control_with_disturbance';
+run 'Scenarios\dp_model_scenario_LQ_control';
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by Thor
@@ -14,12 +14,10 @@ run 'Scenarios\supply_scenario_LQ_control_with_disturbance';
 
 % Preallocate arrays
 t_array = zeros(1,N+1);                 % Time array
-
+ 
 wind_force_array = zeros(3,N);          % Wind force array relative to BODY coordinate frame
 wave_force_array = zeros(3,N);          % Wave force array relative to BODY coordinate frame
 current_force_array = zeros(3,N);       % Current force array relative to BODY coordinate frame
- 
-wind_force_array = zeros(3,N);          % Wind force array
 
 x_array = zeros(n_dim,N+1);             % State array from real process (unknown)
 x_array(:,1) = x0;                      % Storing initial value of state
@@ -32,11 +30,11 @@ y_meas_array(:,1) = y0_meas;            % Storing initial value of measurement
 
 u_array = zeros(3,N);                   % Control input array
 
+u_prev = zeros(3,1);                    % Previous control signal
+
 % Initial values
 x_prev = zeros(n_dim,1);                % Previus state 
 y_prev = zeros(3,1);                    % previous output
-u_prev = zeros(3,1);                    % Previous control signal
-
 x = x0;                                 % Initial real state 
 x_est = x0_est;                         % Initial state estimate
 y_meas = y0_meas;                       % Initial measured value         
@@ -55,7 +53,7 @@ for i=1:N
 
     % Calculate vessel heading
     psi = y_meas(3);
-
+    
     % Calculate discrete supply model matrices
     [A_lin, B_lin, C_lin] = supply_discrete_matrices(M, D, psi, dt, false);
 
@@ -93,6 +91,9 @@ for i=1:N
     % transformed to BODY Coordinate frame
     current_force_array(:,i) = rot'*current_force(:,i);
 
+    % Known forces, tau
+    tau = wind_force_array(:,i) + wave_force_array(:,i);
+
     %%%%%%%%%%%%%%%%%%%%
     %%% Update model %%%
     %%%%%%%%%%%%%%%%%%%%
@@ -123,69 +124,22 @@ for i=1:N
     %%%%%%%%%%%%%%%%%%%%%%%%%%
     if (run_kalman_filter)
 
-        if (kalman_model == KalmanModel.DeviationForm)
-            
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            %%% Kalman filter on deviation form %%%
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
-            % Need deviation in y and u
-            if (i==1)
-                dy = zeros(3,1);
-                du = zeros(3,1);
-            else
-                dy = y_meas_array(:,i+1) - y_meas_array(:,i);
-                du = u - u_array(:,i-1);
-            end
+        % Calculate discrete dp model matrices
+        [A_lin, B_lin, F_lin, C_lin] = dp_fossen_discrete_matrices(M, D, psi, dt, false);
 
-            % Get Kalman gain from inbuilt MATLAB function dlqe
-            [K,~,~,~] = dlqe(A_lin, G_lin, C_lin, W, V);
+        % Get Kalman gain from inbuilt MATLAB function dlqe
+        [K,~,~,~] = dlqe(A_lin, G_lin, C_lin, W, V);
 
-            % Calculate dx_apriori at time step (i+1)
-            dx_apriori = A_lin*dx_aposteriori + B_lin*du;
-  
-            % Calculate dx_aposteriori at time step (i+1)
-            dx_aposteriori = dx_apriori + K*(dy - C_lin*dx_apriori);
+        % Calculate dx_apriori at time step (i+1)
+        x_apriori = A_lin*x_aposteriori + B_lin*u + F_lin*tau;
 
-            % Calculate x_est at time step (i+1)
-            x_est = dx_aposteriori + x_est;
+        % Calculate dx_aposteriori at time step (i+1)
+        x_aposteriori = x_apriori + K*(y_meas - C_lin*x_apriori);
 
-        elseif (kalman_model == KalmanModel.IntegratorIncluded)
+        x_est = x_aposteriori;
 
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            %%% Augmented SSM to include noise integration %%%
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-            % Get Kalman gain from inbuild MATLAB function dlqe
-            [At, Bt, Gt, Ct] = include_integrator_ssm_with_specified_noise(A_lin, B_lin, G_lin, C_lin);
-            [K,~,~,~] = dlqe(At, Gt, Ct, eye(3), eye(3));
-
-            % Calculate x_apriori at time step (i+1)
-            x_apriori = At*x_aposteriori + Bt*u;
-  
-            % Calculate x_aposteriori at time step (i+1)
-            x_aposteriori = x_apriori + K*(y_meas - Ct*x_apriori);
-
-            x_est = x_aposteriori;
-
-        elseif (kalman_model == KalmanModel.Normal)
-
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            %%% SSM model assuming white process noise term %%%
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
-            % Get Kalman gain from inbuilt MATLAB function dlqe
-            [K,~,~,~] = dlqe(A_lin, G_lin, C_lin, W, V);
-
-            % Calculate dx_apriori at time step (i+1)
-            x_apriori = A_lin*x_aposteriori + B_lin*u;
-  
-            % Calculate dx_aposteriori at time step (i+1)
-            x_aposteriori = x_apriori + K*(y_meas - C_lin*x_apriori);
-
-            x_est = x_aposteriori;
-
-        end
+        % Output b term (should equal the current)
+        x_est(7:9)
 
         % Store data Kalman gain
         K_array(:,i) = K(:);
@@ -216,4 +170,4 @@ for i=1:N
 end
 
 % Plot data
-plot_supply_lq_disturbance(t_array, x_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true);
+plot_dp_model_lq_no_disturbance(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true);
