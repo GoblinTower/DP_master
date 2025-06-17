@@ -2,7 +2,7 @@
 clear, clc, close all;
 
 addpath("Plots\");
-addpath("..\Tools\");
+addpath("..\..\Tools\");
 
 % Load configuration data
 run 'Scenarios\supply_scenario_kalman';
@@ -42,7 +42,7 @@ for i=1:N
     
     Ac = [
         zeros(3,3), R, zeros(3,3); 
-        zeros(3,3), -inv(M)*D, -inv(M)*R; 
+        zeros(3,3), -inv(M)*D, inv(M)*R'; 
         zeros(3,3), zeros(3,3), zeros(3,3)
     ];
 
