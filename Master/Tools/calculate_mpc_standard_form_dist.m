@@ -1,4 +1,4 @@
-function [H, c, Ae, be] = calculate_mpc_standard_form(P, Q, A, B, C, x0, N, ref)
+function [H, c, Ae, be] = calculate_mpc_standard_form_dist(P, Q, A, B, C, F, tau, x0, N, ref)
 % This function computes the matrices of MPC on standard form:
 %
 % (1/2)*z'*H*z + c'z
@@ -54,7 +54,7 @@ Ae1u = -kron(eye(N), B);
 Ae1x = eye(N*n_dim) - kron(diag(ones(N-abs(-1),1),-1), A);
 Ae1e = zeros(N*n_dim, N*m_dim);
 Ae1y = zeros(N*n_dim, N*m_dim);
-be1 = [A*x0; zeros((N-1)*n_dim, 1)];
+be1 = [A*x0 + F*tau; kron(ones(N-1,1), F*tau)];
 
 % Second row
 Ae2u = zeros(N*m_dim, N*r_dim);

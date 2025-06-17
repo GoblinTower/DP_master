@@ -1,4 +1,4 @@
-function [H, c, Ae, be] = calculate_mpc_standard_form(P, Q, A, B, C, x0, N, ref)
+function [H, c, Ae, be] = calculate_lpv_mpc(P, Q, A, B, C, x0, u, N, ref, dt, M, D)
 % This function computes the matrices of MPC on standard form:
 %
 % (1/2)*z'*H*z + c'z
@@ -8,7 +8,8 @@ function [H, c, Ae, be] = calculate_mpc_standard_form(P, Q, A, B, C, x0, N, ref)
 %   Ai*z <= bi
 %   zL <= z <= zU
 %
-% Assumes A to be constant
+% Assumes A is calculated based on yaw angle obtained by using present
+% state vector and contro signal calculated in previous MPC iteration.
 
 % Ensure that the reference values are stored in a column vector
 if isrow(ref)
@@ -16,8 +17,8 @@ if isrow(ref)
 end
 
 n_dim = size(A, 1);
-m_dim = size(C, 1);
-r_dim = size(B, 2);
+m_dim = size(B, 2);
+r_dim = size(C, 1);
 z_dim = N*(r_dim + n_dim + 2*m_dim);
 
 % Compute H matrix
@@ -49,21 +50,48 @@ c = zeros(z_dim, 1);
 %
 % Related by Ae*z = be
 
-% First row
+% Must recompute A for every timestep
+Ae1x = eye(N*n_dim);
+
+x = x0;
+
+%% First row if Ae
+
+% State transition matrix is updated at every time step due to changing yaw angle
+for i=1:(N-1)
+
+    % Get yaw angle
+    psi = x(3);
+
+    % Get control signal from previous MPC iteration
+    if (i == N-1)
+        u_signal = u(:,i);
+    else
+        u_signal = u(:,i+1);
+    end
+
+    % Get discrete DP model matrices
+    [Ad, Bd, Fd, Cd] = dp_fossen_discrete_matrices(M, D, psi, dt, false);
+
+    % Estimate future state vectors
+    x = Ad*x + Bd*u_signal;
+
+    Ae1x((i*n_dim+1):((i+1)*n_dim),((i-1)*n_dim+1):(i*n_dim)) = -Ad;
+end
+
 Ae1u = -kron(eye(N), B);
-Ae1x = eye(N*n_dim) - kron(diag(ones(N-abs(-1),1),-1), A);
 Ae1e = zeros(N*n_dim, N*m_dim);
 Ae1y = zeros(N*n_dim, N*m_dim);
 be1 = [A*x0; zeros((N-1)*n_dim, 1)];
 
-% Second row
+%% Second row
 Ae2u = zeros(N*m_dim, N*r_dim);
 Ae2x = -kron(eye(N), C);
 Ae2e = zeros(N*m_dim, N*m_dim);
 Ae2y = eye(N*m_dim);
 be2 = zeros(N*m_dim, 1);
 
-% Third row
+%% Third row
 Ae3u = zeros(N*m_dim, N*r_dim);
 Ae3x = zeros(N*m_dim, N*n_dim);
 Ae3e = eye(N*m_dim);

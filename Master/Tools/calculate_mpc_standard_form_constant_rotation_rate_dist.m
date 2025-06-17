@@ -1,4 +1,4 @@
-function [H, c, Ae, be] = calculate_mpc_standard_form(P, Q, A, B, C, x0, N, ref)
+function [H, c, Ae, be] = calculate_mpc_standard_form_constant_rotation_rate_dist(P, Q, A, B, C, F, tau, x0, N, ref, dt, M, D)
 % This function computes the matrices of MPC on standard form:
 %
 % (1/2)*z'*H*z + c'z
@@ -51,10 +51,39 @@ c = zeros(z_dim, 1);
 
 % First row
 Ae1u = -kron(eye(N), B);
-Ae1x = eye(N*n_dim) - kron(diag(ones(N-abs(-1),1),-1), A);
+
+% Must recompute A for every timestep
+Ae1x = eye(N*n_dim);
+
+psi = x0(3);                        % Yaw position at current time
+r = x0(6);                          % Yaw rate at current time
+
+for i=1:(N-1)
+
+    % Update rotation matrix
+    psi = psi + r*dt;               % Update yaw assuming constant yaw rate
+    R = rotation_matrix(psi);
+
+    Ac = [
+        zeros(3,3), R, zeros(3,3); 
+        zeros(3,3), -inv(M)*D, -inv(M)*R; 
+        zeros(3,3), zeros(3,3), zeros(3,3)
+    ];
+
+    Bc = [zeros(3,3); inv(M); zeros(3,3)];
+    Cc = [eye(3), zeros(3,3), zeros(3,3)];
+
+    % Recompute A
+    sys = ss(Ac, Bc, Cc, 0);
+    sysd = c2d(sys, dt);
+    
+    A_mod = sysd.A;
+
+    Ae1x((i*n_dim+1):((i+1)*n_dim),((i-1)*n_dim+1):(i*n_dim)) = -A_mod;
+end
 Ae1e = zeros(N*n_dim, N*m_dim);
 Ae1y = zeros(N*n_dim, N*m_dim);
-be1 = [A*x0; zeros((N-1)*n_dim, 1)];
+be1 = [A*x0 + F*tau; kron(ones(N-1,1), F*tau)];
 
 % Second row
 Ae2u = zeros(N*m_dim, N*r_dim);
