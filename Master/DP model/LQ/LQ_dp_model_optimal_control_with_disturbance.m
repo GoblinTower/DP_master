@@ -5,7 +5,7 @@ addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data
-run 'Scenarios\dp_model_scenario_LQ_control';
+run 'Scenarios'\dp_model_scenario_LQ_control_with_disturbance.m;
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by Thor
@@ -51,7 +51,7 @@ K_array = zeros(n_kal_dim*3,N);   % Storing Kalman filter gain
 
 for i=1:N
 
-    % Calculate vessel heading
+    % Get vessel heading
     psi = y_meas(3);
     
     % Calculate discrete supply model matrices
@@ -144,6 +144,9 @@ for i=1:N
         % Store data Kalman gain
         K_array(:,i) = K(:);
 
+    else
+        % Use state process value
+        x_est(1:n_dim) = x;
     end
 
     % Update time
@@ -170,4 +173,4 @@ for i=1:N
 end
 
 % Plot data
-plot_dp_model_lq_no_disturbance(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true);
+plot_dp_model_lq_disturbance(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true);

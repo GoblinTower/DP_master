@@ -34,13 +34,13 @@ end
 %%%%%%%%%%%%%%%%%%%%%
 %%% Kalman filter %%%
 %%%%%%%%%%%%%%%%%%%%%
-run_kalman_filter = true;
+run_kalman_filter = false;
 
 W = diag([1e2, 1e2, 1e2, 1e2, 1e2, 1e2, 1e12, 1e12, 1e12]);   % Process noise
 V = 10*eye(3);                                                % Measurement noise
 
 x0_est = [0; 0; 0; 0; 0; 0; 0; 0; 0];             % Initial state estimate
-n_kal_dim = size(x0_est,1);                       % Size of state matrix in Kalman filter
+n_kal_dim = size(x0_est,1);                       % Number of states in Kalman filter
 G_lin = eye(n_kal_dim);                           % Process noise matrix
 
 x_aposteriori = x0_est;                           % Aposteriori state estimate
@@ -56,7 +56,7 @@ animation_delay = 0.01;                           % Animation speed (in seconds)
 
 % x0 = [0; 0; 0; 0; 0; 0];                        % Initial values of states (real)
 x0 = [0.5; 0.5; deg2rad(2); 0; 0; 0];             % Initial values of states (real)
-n_dim = size(x0,1);                               % Size of state matrix in process model
+n_dim = size(x0,1);                               % Size of state vector in process model
 
 y0_meas = x0(1:3);                                % Initial values of measurements
 

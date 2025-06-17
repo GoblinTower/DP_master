@@ -169,6 +169,9 @@ for i=1:N
         % Store data Kalman gain
         K_array(:,i) = K(:);
 
+    else
+        % Use state process value
+        x_est(1:n_dim) = x;
     end
 
     % Update time
