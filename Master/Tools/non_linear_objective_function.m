@@ -1,4 +1,4 @@
-function J = non_linear_objective_function(u, ref, M, D, P, Q, x0, horizon_length, dt, method)
+function J = non_linear_objective_function(u, tau, ref, M, D, P, Q, x0, horizon_length, dt, method)
 % Calculation of objective function based on specified control input
 
 J = 0;
@@ -11,7 +11,7 @@ t = 0;
 for k=1:horizon_length
 
     % Runge-Kutta 4th order
-    [~, x] = runge_kutta_4(@(t, x) dp_model(t, x, u(:,k), M, D), t, x, dt);
+    [~, x] = runge_kutta_4(@(t, x) dp_model(t, x, u(:,k), tau, M, D), t, x, dt);
 
     % Caculate output variables
     y = Cc*x;
