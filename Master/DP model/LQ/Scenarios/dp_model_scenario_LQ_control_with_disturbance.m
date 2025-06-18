@@ -14,6 +14,10 @@ N = ceil(T/dt);     % Number of sample steps
 % IntegrationMethod.Forward_Euler
 integration_method = IntegrationMethod.Runge_Kutta_Fourth_Order;
 
+% Output files
+folder = "Results/lq_dp_model_dist";          % Name of folder to store output files
+file_prefix = "lq_dp_model_dist_";            % Prefix of file names
+
 % LQ control parameters
 Q = diag([1e9, 1e9, 1e11]);          % State weighting matrix
 P = 1.0*eye(3);                      % Input weighting matrix
@@ -34,7 +38,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%
 %%% Kalman filter %%%
 %%%%%%%%%%%%%%%%%%%%%
-run_kalman_filter = false;
+run_kalman_filter = true;
 
 W = diag([1e2, 1e2, 1e2, 1e2, 1e2, 1e2, 1e12, 1e12, 1e12]);   % Process noise
 V = 10*eye(3);                                                % Measurement noise

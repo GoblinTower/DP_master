@@ -1,4 +1,4 @@
-function plot_dp_model_lq_disturbance(t, x, x_est, K, u, wind_abs, wind_beta, wind_force, current_force, wave_force, setpoint, save_plots)
+function plot_dp_model_lq(t, x, x_est, K, u, wind_abs, wind_beta, wind_force, current_force, wave_force, setpoint, save_plots, folder, file_prefix)
     
     f1 = figure(1); % Plotting states
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -217,12 +217,12 @@ function plot_dp_model_lq_disturbance(t, x, x_est, K, u, wind_abs, wind_beta, wi
     ylabel('τ_s [Nm]');
 
     if (save_plots)
-        save_plot(f1, "lq_dist_states", "Results/dp_LQ_dist");
-        save_plot(f2, "lq_dist_path", "Results/dp_LQ_dist");
-        save_plot(f3, "lq_dist_inputs", "Results/dp_LQ_dist");
-        save_plot(f5, "lq_dist_wind", "Results/dp_LQ_dist");
-        save_plot(f6, "lq_dist_current", "Results/dp_LQ_dist");
-        save_plot(f6, "lq_dist_wave", "Results/dp_LQ_dist");
+        save_plot(f1, file_prefix + "states", folder);
+        save_plot(f2, file_prefix + "path", folder);
+        save_plot(f3, file_prefix + "inputs", folder);
+        save_plot(f5, file_prefix + "wind", folder);
+        save_plot(f6, file_prefix + "current", folder);
+        save_plot(f7, file_prefix + "wave", folder);
     end
 
  end

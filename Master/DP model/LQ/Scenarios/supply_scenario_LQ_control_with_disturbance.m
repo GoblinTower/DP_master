@@ -13,6 +13,10 @@ N = ceil(T/dt);     % Number of sample steps
 % IntegrationMethod.Forward_Euler
 integration_method = IntegrationMethod.Runge_Kutta_Fourth_Order;
 
+% Output files
+folder = "Results/lq_supply_dist";          % Name of folder to store output files
+file_prefix = "lq_supply_dist_";            % Prefix of file names
+
 % LQ control parameters
 Q = diag([1e9, 1e9, 1e11]);          % State weighting matrix
 P = 1.0*eye(3);                      % Input weighting matrix
@@ -38,7 +42,7 @@ run_kalman_filter = true;
 W = 1*eye(6);                                     % Process noise
 V = 10*eye(3);                                    % Measurement noise
 
-kalman_model = KalmanModel.IntegratorIncluded;         % Select Kalman filter model
+kalman_model = KalmanModel.IntegratorIncluded;    % Select Kalman filter model
 
 if (kalman_model == KalmanModel.DeviationForm)
     x0_est = [0; 0; 0; 0; 0; 0];                  % Initial state estimate
@@ -94,15 +98,17 @@ measurement_noise_std = [0.1; 0.1; deg2rad(0.1)];
 %%%%%%%%%%%%%%%%%%%%%%%
 use_current_force = true;
 use_wave_force = true;
+use_wind_force = true;
 
 % Current
 current_variance = [1e3; 1e3; 0];
+% current_variance = [0; 0; 0];
 current_start_values = [1e5; 2e5; 0];
 
 current_force = zeros(3,N);
-current_force(:,1) = current_start_values;
 % Gaussian random walk
 if (use_current_force)
+    current_force(:,1) = current_start_values;
     for j=2:N
         current_force(:,j) = current_force(:,j-1) + normrnd(0, current_variance, 3, 1);
     end
@@ -110,12 +116,13 @@ end
 
 % Wave
 wave_variance = [1e2; 1e2; 1e2];
-wave_start_values = [1e3; 3e2; 5e2];
+% wave_variance = [0; 0; 0];
+wave_start_values = [1e4; 3e4; 5e2];
 
 wave_force = zeros(3,N);
-wave_force(:,1) = wave_start_values;
 % Gaussian random walk
 if (use_wave_force)
+    wave_force(:,1) = wave_start_values;
     for j=2:N
         wave_force(:,j) = wave_force(:,j-1) + normrnd(0, wave_variance, 3, 1);
     end
@@ -135,10 +142,12 @@ wind_variance = [0.1; 0.2]*dt;
 wind_start_values = [deg2rad(35); 10];
 
 wind = zeros(2,N);
-wind(:,1) = [wind_start_values(1), wind_start_values(2)];
 % Gaussian random walk
-for j=2:N
-    wind(:,j) = wind(:,j-1) + normrnd(0, wind_variance, 2, 1);
+if (use_wind_force)
+    wind(:,1) = [wind_start_values(1); wind_start_values(2)];
+    for j=2:N
+        wind(:,j) = wind(:,j-1) + normrnd(0, wind_variance, 2, 1);
+    end
 end
 
 wind_beta = smooth(wind(1,:));

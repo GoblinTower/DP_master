@@ -5,7 +5,8 @@ addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data
-run 'Scenarios'\dp_model_scenario_LQ_control.m;
+run 'Scenarios\dp_model_scenario_LQ_control_without_disturbance.m';
+% run 'Scenarios\dp_model_scenario_LQ_control_with_disturbance.m';
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by Thor
@@ -51,7 +52,7 @@ K_array = zeros(n_kal_dim*3,N);   % Storing Kalman filter gain
 
 for i=1:N
 
-    % Calculate vessel heading
+    % Get vessel heading
     psi = y_meas(3);
     
     % Calculate discrete supply model matrices
@@ -80,7 +81,11 @@ for i=1:N
     % The actual wind forces will depend on the real ship position, hence
     % we use the state variables from the 'real' process.
     wind_force = wind_force_calc(wind_abs(i), wind_beta(i), x(3), x(4), x(5), rho, Af, Al, L, Cx, Cy, Cn);
-    wind_force_array(:,i) = wind_force;
+    if (use_wind_force)
+        wind_force_array(:,i) = wind_force;
+    else
+        wind_force_array(:,i) = zeros(3,1);
+    end
 
     % Wave force is defined relative to NED coordinate frame. Forces must
     % transformed to BODY Coordinate frame
@@ -173,4 +178,4 @@ for i=1:N
 end
 
 % Plot data
-plot_dp_model_lq_no_disturbance(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true);
+plot_dp_model_lq(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true, folder, file_prefix);
