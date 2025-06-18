@@ -38,7 +38,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%
 %%% Kalman filter %%%
 %%%%%%%%%%%%%%%%%%%%%
-run_kalman_filter = true;
+run_kalman_filter = false;
 
 W = diag([1e2, 1e2, 1e2, 1e2, 1e2, 1e2, 1e12, 1e12, 1e12]);   % Process noise
 V = 10*eye(3);                                                % Measurement noise
