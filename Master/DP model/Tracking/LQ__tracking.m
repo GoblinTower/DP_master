@@ -5,12 +5,8 @@ addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data
-<<<<<<<< HEAD:Master/DP model/Tracking/LQ__tracking.m
-run 'Scenarios'\LQ_control_tracking_without_disturbance.m;
-% run 'Scenarios'\LQ_control_tracking_with_disturbance.m;
-========
-run 'Scenarios'\dp_model_scenario_LQ_control_with_disturbance.m;
->>>>>>>> origin/main:Master/DP model/LQ/LQ_dp_model_optimal_control_with_disturbance.m
+run 'Scenarios\LQ_control_tracking_without_disturbance.m';
+% run 'Scenarios\LQ_control_tracking_with_disturbance.m';
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by Thor
@@ -184,8 +180,4 @@ for i=1:N
 end
 
 % Plot data
-<<<<<<<< HEAD:Master/DP model/Tracking/LQ__tracking.m
 plot_lq_control_tracking(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true, folder, file_prefix);
-========
-plot_dp_model_lq_disturbance(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true);
->>>>>>>> origin/main:Master/DP model/LQ/LQ_dp_model_optimal_control_with_disturbance.m
