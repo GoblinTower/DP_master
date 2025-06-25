@@ -15,12 +15,19 @@ N = ceil(T/dt);     % Number of sample steps
 % IntegrationMethod.Forward_Euler
 integration_method = IntegrationMethod.Runge_Kutta_Fourth_Order;
 
+% Output files
+folder = "Results/mpc_const_psi_with_dist";       % Name of folder to store output files
+file_prefix = "mpc_const_psi_with_dist";          % Prefix of file names
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% MPC control parameters %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
 horizon_length = 20;                 % Prediction horizon length
-Q = diag([1e8, 1e8, 1e10]);          % Error weighting matrix
-P = diag([1e-6, 1e-6, 1e-6]);        % Input weighting matrix
+% Q = diag([1e8, 1e8, 1e10]);        % Error weighting matrix
+% P = diag([1e-6, 1e-6, 1e-6]);      % Input weighting matrix
+
+Q = diag([5e8, 5e8, 5e9]);           % Error weighting matrix
+P = diag([1e-2, 1e-2, 1e-6]);        % Input weighting matrix
 
 % Quadratic programming options
 options = optimoptions('quadprog', 'display', 'off');

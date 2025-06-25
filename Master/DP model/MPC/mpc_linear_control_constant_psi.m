@@ -188,4 +188,4 @@ for i=1:N
 end
 
 % Plot data
-plot_supply_linear_mpc_psi_constant(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true);
+plot_supply_linear_mpc_psi_constant(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true, folder, file_prefix);

@@ -7,7 +7,7 @@ rng(42,"twister");
 
 dt = 1.0;           % Timestep used in integration
 
-T = 100;            % End time
+T = 500;            % End time
 N = ceil(T/dt);     % Number of sample steps
 
 % Select integration method
@@ -16,21 +16,26 @@ N = ceil(T/dt);     % Number of sample steps
 integration_method = IntegrationMethod.Runge_Kutta_Fourth_Order;
 
 % Output files
-folder = "Results/mpc_lpv_with_dist";       % Name of folder to store output files
-file_prefix = "mpc_lpv_with_dist";          % Prefix of file names
+folder = "Results/mpc_const_psi_du_no_dist";         % Name of folder to store output files
+file_prefix = "mpc_const_psi_du_no_dist";            % Prefix of file names
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% MPC control parameters %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
 horizon_length = 20;                 % Prediction horizon length
-Q = diag([1e8, 1e8, 1e10]);        % Error weighting matrix
-P = diag([1e-6, 1e-6, 1e-6]);      % Input weighting matrix
+% Q = diag([1e8, 1e8, 1e10]);        % Error weighting matrix
+% P = diag([1e-6, 1e-6, 1e-6]);      % Input weighting matrix
 
-% Q = diag([5e8, 5e8, 5e9]);           % Error weighting matrix
-% P = diag([1e-2, 1e-2, 1e-6]);        % Input weighting matrix
+Q = diag([5e8, 5e8, 5e9]);           % Error weighting matrix
+P = diag([1e-4, 1e-4, 1e-6]);        % Input weighting matrix
 
 % Quadratic programming options
 options = optimoptions('quadprog', 'display', 'off');
+
+% Force and momentum limitations
+use_force_limitation = false;        % Apply force and momentum limitations
+max_inputs = [1e10; 1e10; 1e10];     % Max allowed force/momentum
+max_delta_u = [1e6; 1e6; 2e7];       % Max allowed change in force/momentum per timestep 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Setpoints [North, East, Yaw] %%%
@@ -44,7 +49,7 @@ for k=1:setpoint_length
     elseif (time < 400)
         setpoint(:,k) = [10; 5; deg2rad(30)];
     else
-        setpoint(:,k) = [-50; -5; deg2rad(270)];
+        setpoint(:,k) = [-5; -5; deg2rad(45)];
     end
 end
 
@@ -80,6 +85,8 @@ m_dim = size(y0_meas,1);                          % Size of output vector in pro
 
 r_dim = 3;                                        % Sice of input vector
 
+u_prev = zeros(r_dim,1);                          % Previous input vector. Needed for first iteration
+
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Measurement noise %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%
@@ -94,9 +101,9 @@ measurement_noise_std = [0.1; 0.1; deg2rad(0.1)];
 %%%%%%%%%%%%%%%%%%%%%%%
 %%% External forces %%%
 %%%%%%%%%%%%%%%%%%%%%%%
-use_current_force = true;
-use_wave_force = true;
-use_wind_force = true;
+use_current_force = false;
+use_wave_force = false;
+use_wind_force = false;
 
 % Current
 current_variance = [1e3; 1e3; 0];

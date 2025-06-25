@@ -16,7 +16,7 @@ run 'Scenarios\supply_scenario_mpc_control_r_const';
 [~, ~, M, D] = supply();
 
 % Initial guess for the MPC optimization problem
-z0 = zeros(r_dim + n_dim + 2*m_dim, 1);
+z0 = zeros(horizon_length*(r_dim + n_kal_dim + 2*m_dim),1);
 
 % Preallocate arrays
 t_array = zeros(1,N+1);                 % Time array

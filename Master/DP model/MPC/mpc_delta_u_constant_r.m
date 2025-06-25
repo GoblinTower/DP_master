@@ -1,12 +1,15 @@
 % Script for implementing and testing model predictive controller (MPC)
-% using LPV (Linear Parameter Varying formulation).
+% Runs linear MPC with changing state transition matrix. It is assumed
+% that the yaw velocity is constant for the entire horizon. Thus the yaw
+% when calculating any matrix A(t) is psi(t) = psi(t0) + dpsi/dt(t0)*(t-t0)
 clear, clc, close all;
 
 addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data
-run 'Scenarios\supply_scenario_lpv_mpc';
+run 'Scenarios\Delta_u\supply_scenario_mpc_r_const_with_disturbance';
+% run 'Scenarios\Delta_u\supply_scenario_mpc_r_const_without_disturbance';
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by T.I.
@@ -14,7 +17,7 @@ run 'Scenarios\supply_scenario_lpv_mpc';
 [~, ~, M, D] = supply();
 
 % Initial guess for the MPC optimization problem
-z0 = zeros(horizon_length*(r_dim + n_kal_dim + 2*m_dim),1);
+z0 = zeros(horizon_length*(2*r_dim + n_kal_dim + 2*m_dim),1);
 
 % Preallocate arrays
 t_array = zeros(1,N+1);                 % Time array
@@ -33,7 +36,6 @@ y_meas_array = zeros(3,N+1);            % Measurement array
 y_meas_array(:,1) = y0_meas;            % Storing initial value of measurement 
 
 u_array = zeros(r_dim,N);               % Control input array
-u_prev = zeros(r_dim,N);                % Previous control input
 
 % Initial values
 x = x0;                                 % Initial real state 
@@ -55,6 +57,7 @@ for i=1:N
     % Get vessel heading
     psi = y_meas(3);
 
+    % Calculate discrete dp model matrices
     [A_lin, B_lin, F_lin, C_lin] = dp_fossen_discrete_matrices(M, D, psi, dt, false);
 
     %%%%%%%%%%%%%%%%%%%%%%%
@@ -89,19 +92,19 @@ for i=1:N
     ref = ref(:);                               % Must be a column vector
                              
     % Solve quadratic optimization problem
-    [H, c, Ae, be] = calculate_lpv_mpc_dist(P, Q, A_lin, B_lin, C_lin, F_lin, tau, x_est, u_prev, horizon_length, ref, dt, M, D);
-    
+    [H, c, Ae, be] = calculate_mpc_delta_u_form_constant_rotation_rate_dist(P, Q, A_lin, B_lin, C_lin, F_lin, tau, x_est, u_prev, horizon_length, ref, dt, M, D);
+        
     % Optimization solver
     z = quadprog(H, c, [], [], Ae, be, [], [], z0, options);
     
     % Store previous value for warm starting
-    z0 = z;
-
-    % Store array for use in next MPC run (LPV)
-    u_prev = reshape(z(1:r_dim*horizon_length), 3, []);
+    z0 = z; 
 
     % Get control signal
     u = z(1:r_dim);
+
+    % Store control signal for future use
+    u_prev = u;
 
     %%%%%%%%%%%%%%%%%%%%
     %%% Update model %%%
@@ -165,7 +168,7 @@ for i=1:N
     disp(['Current time: ', num2str(t)]);
     disp(['Integrator term : ', 'b(1): ', num2str(x_est(7)), ' b(2): ', num2str(x_est(8)), ...
         ' b(3): ', num2str(x_est(9))]);
-    
+
     % Update animated positon plot
     if (animate_kalman_estimate)
         animate_kalman.UpdatePlot(t_array(i), x_est_array(1,i), x_est_array(2,i), x_est_array(3,i),...
@@ -178,4 +181,4 @@ for i=1:N
 end
 
 % Plot data
-plot_supply_lpv_mpc(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true, folder, file_prefix);
+plot_supply_linear_mpc_r_constant(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true, folder, file_prefix);

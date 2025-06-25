@@ -6,7 +6,8 @@ addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data
-run 'Scenarios\supply_scenario_lpv_mpc';
+run 'Scenarios\Delta_u\supply_scenario_mpc_lpv_with_disturbance';
+% run 'Scenarios\Delta_u\supply_scenario_mpc_lpv_without_disturbance';
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by T.I.
@@ -14,7 +15,7 @@ run 'Scenarios\supply_scenario_lpv_mpc';
 [~, ~, M, D] = supply();
 
 % Initial guess for the MPC optimization problem
-z0 = zeros(horizon_length*(r_dim + n_kal_dim + 2*m_dim),1);
+z0 = zeros(horizon_length*(2*r_dim + n_kal_dim + 2*m_dim),1);
 
 % Preallocate arrays
 t_array = zeros(1,N+1);                 % Time array
@@ -89,7 +90,7 @@ for i=1:N
     ref = ref(:);                               % Must be a column vector
                              
     % Solve quadratic optimization problem
-    [H, c, Ae, be] = calculate_lpv_mpc_dist(P, Q, A_lin, B_lin, C_lin, F_lin, tau, x_est, u_prev, horizon_length, ref, dt, M, D);
+    [H, c, Ae, be] = calculate_lpv_mpc_delta_u_dist(P, Q, A_lin, B_lin, C_lin, F_lin, tau, x_est, u_prev, horizon_length, ref, dt, M, D);
     
     % Optimization solver
     z = quadprog(H, c, [], [], Ae, be, [], [], z0, options);

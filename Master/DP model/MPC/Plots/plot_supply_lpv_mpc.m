@@ -1,4 +1,4 @@
-function plot_supply_lpv_mpc(t, x, x_est, K, u, wind_abs, wind_beta, wind_force, current_force, wave_force, setpoint, save_plots)
+function plot_supply_lpv_mpc(t, x, x_est, K, u, wind_abs, wind_beta, wind_force, current_force, wave_force, setpoint, save_plots, folder, file_prefix)
     
     f1 = figure(1); % Plotting states
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -218,12 +218,12 @@ function plot_supply_lpv_mpc(t, x, x_est, K, u, wind_abs, wind_beta, wind_force,
     ylabel('τ_s [Nm]');
 
     if (save_plots)
-        save_plot(f1, "mpc_states", "Results/LPV_MPC");
-        save_plot(f2, "mpc_path", "Results/LPV_MPC");
-        save_plot(f3, "mpc_inputs", "Results/LPV_MPC");
-        save_plot(f5, "mpc_wind", "Results/LPV_MPC");
-        save_plot(f6, "mpc_current", "Results/LPV_MPC");
-        save_plot(f6, "mpc_wave", "Results/LPV_MPC");
+        save_plot(f1, file_prefix + "states", folder);
+        save_plot(f2, file_prefix + "path", folder);
+        save_plot(f3, file_prefix + "inputs", folder);
+        save_plot(f5, file_prefix + "wind", folder);
+        save_plot(f6, file_prefix + "current", folder);
+        save_plot(f7, file_prefix + "wave", folder);
     end
 
  end
