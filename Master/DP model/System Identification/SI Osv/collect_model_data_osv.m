@@ -5,6 +5,11 @@ addpath("..\..\..\Tools\");
 % Load configuration data
 run 'setup_osv_variable_input_prbs';
 
+% Type of sys_identification
+sysid = 'dsr';
+% sysid = 'dsr_e';
+% sysid = 'pem';
+
 % Preallocate arrays
 t = 0;
 t_array = zeros(1,N+1);    % Time
@@ -39,7 +44,8 @@ for i=1:N
 end
 
 % Save data for DSR
-save Log/dsr_osv_data t_array x_array u_array u_force_array u_squared;
+save_path = strcat('Log\', sysid, '_osv_data');
+save(save_path, 't_array', 'x_array', 'u_array', 'u_force_array', 'u_squared');
 
 % Plot data
 plot_osv_states_path_input(t_array, x_array, u_array);

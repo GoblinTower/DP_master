@@ -1,7 +1,7 @@
 %%% Setup for ship (supply model) subjected to variable values in the control input
 %%% using PRBS (PseudoRandom Binary Sequence)
 
-dt = 1.0;           % Timestep used in integration
+dt = 0.5;           % Timestep used in integration
 T = 3000;           % End time
 N = ceil(T/dt);     % Number of sample steps
 

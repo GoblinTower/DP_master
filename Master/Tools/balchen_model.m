@@ -11,7 +11,7 @@ function x_dot = balchen_model(x, u, vc, Nc, Fw)
 % x(5)               : Distance travelled in sway direction (y_su)
 % x(6)               : Velocity in surge (u)
 % x(7)               : Velocity in sway (v)
-% x(8)               : Vessel heading angular velocity (r)
+% x(8)               : Vessel angular velocity (r)
 % u(1)               : Thruster force in surge 
 % u(2)               : Thruster force in sway
 % u(3)               : Thruster momentum in yaw
@@ -28,12 +28,12 @@ function x_dot = balchen_model(x, u, vc, Nc, Fw)
 
 % Parameters
 d1 = 5e-5;
-d2 = 22e-5;
-d3 = 12e-11; % Believe this should be negative
-d4 = 225e-15;
-m1 = 2.4e7;
-m2 = 4e7;
-m3 = 4.5e10;
+d2 = 21e-5;
+d3 = 1.1e-10;
+d4 = 201.0e-15;
+m1 = 4.0e6;
+m2 = 4.0e7;
+m3 = 4.7e10;
 
 x_dot = zeros(8,1);
 
@@ -50,6 +50,7 @@ x_dot(5) = x(7);
 psi = x(3);
 rotation = rotation_matrix(psi);
 
+% Calculate position in NED and heading
 NED = rotation*[x(6); x(7); x(8)];
 x_dot(1) = NED(1);
 x_dot(2) = NED(2);

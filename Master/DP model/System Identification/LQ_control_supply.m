@@ -5,8 +5,8 @@ addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data
-run 'Scenarios\balchen_scenario_LQ_control_without_disturbance';
-% run 'Scenarios\balchen_scenario_LQ_control_with_disturbance';
+run 'Scenarios\supply_scenario_LQ_control_without_disturbance';
+% run 'Scenarios\supply_scenario_LQ_control_with_disturbance';
 
 % Type of sys_identification
 % sysid = 'dsr';
@@ -14,11 +14,11 @@ run 'Scenarios\balchen_scenario_LQ_control_without_disturbance';
 sysid = 'pem';
 
 % Save file names and location
-folder = 'Results/LQ_balchen';
+folder = 'Results/LQ_supply';
 file_prefix = strcat(sysid, simulation_type);
 
 % Create model using DSR generated matrices
-load_path = strcat('Log\', sysid, '_ssm_balchen');
+load_path = strcat('Log\', sysid, '_ssm_supply');
 si = load(load_path);
 A_si = si.A;
 B_si = si.B;
@@ -26,13 +26,17 @@ C_si = si.C;
 
 dt = si.dt;
 
+% Fetch M and D matrices
+% See Identification of dynamically positioned ship paper written by Thor
+% Inge Fossen et al (1995).
+[~, ~, M, D] = supply();
+
 % Preallocate arrays
 t_array = zeros(1,N+1);                 % Time array
  
 wind_force_array = zeros(3,N);          % Wind force array relative to BODY coordinate frame
 wave_force_array = zeros(3,N);          % Wave force array relative to BODY coordinate frame
 current_force_array = zeros(3,N);       % Current force array relative to BODY coordinate frame
-current_velocity_array = zeros(2,N);    % Velocity array relative to vessel
 
 x_array = zeros(n_dim,N+1);             % State array from real process (unknown)
 x_array(:,1) = x0;                      % Storing initial value of state
@@ -66,9 +70,9 @@ K_array = zeros(n_kal_dim*3,N);   % Storing Kalman filter gain
 
 for i=1:N
 
-    % Calculate vessel heading
+    % Get vessel heading
     psi = y_meas(3);
-
+    
     % Calculate discrete supply model matrices
     [A_lin, B_lin, C_lin] = dp_model_discrete_matrices_si(A_si, B_si, C_si, psi, dt);
 
@@ -76,9 +80,6 @@ for i=1:N
     [G, G1, G2, A_dev, B_dev, C_dev] = calculate_lq_deviation_gain(A_lin, B_lin, C_lin, Q, P);
 
     % Control input using LQ
-    ref = setpoint(:,i);
-
-    % Use state from Kalman filter
     ref = setpoint(:,i);
     if (run_kalman_filter)
         % Use state from Kalman filter
@@ -111,8 +112,6 @@ for i=1:N
     % transformed to BODY Coordinate frame
     current_force_array(:,i) = rot'*current_force(:,i);
 
-    current_velocity_array(:,i) = rot(1:2,1:2)'*current_velocity(:,i);
-
     % Known forces, tau
     tau = wind_force_array(:,i) + wave_force_array(:,i);
 
@@ -122,12 +121,12 @@ for i=1:N
     switch (integration_method)
         case (IntegrationMethod.Forward_Euler)
             % Forward Euler
-            xdot = balchen_model(x, u, current_velocity_array, 0, tau);
+            xdot = supply_model(t, x, u, M, D, wind_force_array(:,i), wave_force_array(:,i), current_force_array(:,i));
             x = x + xdot*dt;
 
         case (IntegrationMethod.Runge_Kutta_Fourth_Order)
             % Runge-Kutta 4th order
-            [~, x] = runge_kutta_4(@(t, x) balchen_model(x, u, current_velocity_array, 0, tau), t, x, dt);
+            [~, x] = runge_kutta_4(@(t, x) supply_model(t, x, u, M, D, wind_force_array(:,i), wave_force_array(:,i), current_force_array(:,i)), t, x, dt);
     end
 
     % Measurement with added noise
@@ -144,7 +143,7 @@ for i=1:N
     %%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% Update Kalman gain %%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%
-     if (run_kalman_filter)
+    if (run_kalman_filter)
 
         % Calculate discrete dp model matrices
         [A_lin, B_lin, F_lin, C_lin] = dp_model_discrete_matrices_si_int(A_si, B_si, C_si, psi, dt);
@@ -196,7 +195,7 @@ for i=1:N
 end
 
 % Plot data
-plot_balchen_model_lq(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_velocity, wave_force, setpoint, true, folder, file_prefix);
+plot_dp_model_lq(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true, folder, file_prefix);
 
 % Store data
 save_destination = strcat(folder, '/', file_prefix, '_data');

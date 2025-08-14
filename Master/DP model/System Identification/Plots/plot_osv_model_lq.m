@@ -1,7 +1,6 @@
-function plot_supply_lq_no_disturbance(t, x, K, u, setpoint, save_plots)
-    
+function plot_osv_model_lq(t, x, K, u, setpoint, save_plots, folder, file_prefix)
+        
     f1 = figure(1); % Plotting states
-
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% Velocity and angular momentum in BODY frame %%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -84,21 +83,21 @@ function plot_supply_lq_no_disturbance(t, x, K, u, setpoint, save_plots)
     %%% Bow thrusters %%%
     %%%%%%%%%%%%%%%%%%%%%
     subplot(3,1,1);
-    plot(t(1:length_time), sign(u(1,:).*sqrt(abs(u(1,:)))))
+    plot(t(1:length_time), sign(u(1,:)).*sqrt(abs(u(1,:))))
     grid();
     title('Bow thruster (RPS)');
     xlabel('t [s]');
     ylabel('RPS');
 
     subplot(3,1,2);
-    plot(t(1:length_time), sign(u(2,:).*sqrt(abs(u(2,:)))))
+    plot(t(1:length_time), sign(u(2,:)).*sqrt(abs(u(2,:))))
     grid();
     title('Starboard propeller (RPS)');
     xlabel('t [s]');
     ylabel('RPS');
 
     subplot(3,1,3);
-    plot(t(1:length_time), sign(u(3,:).*sqrt(abs(u(3,:)))))
+    plot(t(1:length_time), sign(u(3,:)).*sqrt(abs(u(3,:))))
     grid();
     title('Port propeller (RPS)');
     xlabel('t [s]');
@@ -117,9 +116,9 @@ function plot_supply_lq_no_disturbance(t, x, K, u, setpoint, save_plots)
     ylabel('Gain value');
 
     if (save_plots)
-        save_plot(f1, "lq_no_dist_states", "Results/LQ_no_dist");
-        save_plot(f2, "lq_no_dist_path", "Results/LQ_no_dist");
-        save_plot(f3, "lq_no_dist_inputs", "Results/LQ_no_dist");
+        save_plot(f1, file_prefix + "_states", folder);
+        save_plot(f2, file_prefix + "_path", folder);
+        save_plot(f3, file_prefix + "_inputs", folder);
     end
 
  end
