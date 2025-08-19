@@ -5,7 +5,7 @@ addpath("..\..\..\..\Libraries\DSR");
 debug_output = true;
 
 % Fetch logged data from file
-load_path = strcat('Log\', sysid, '_balchen_data');
+load_path = strcat('Log\', sysid, '_supply_data');
 data = load(load_path);
 
 % x_array
@@ -18,7 +18,7 @@ u_array = [data.u_array(1:3,:)];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% System identification - DSR %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if (strcmp(sysid,'dsr'))
+if (strcmp(sysid,'dsr')|strcmp(sysid,'dsr_cont'))
 
     % System identification parameters (DSR)
     L_sys = 3;              % Number of block rows in extended observability matrix
@@ -41,7 +41,7 @@ if (strcmp(sysid,'dsr'))
         compare(data, sys);
     end
 
-elseif (strcmp(sysid,'dsr_e'))
+elseif (strcmp(sysid,'dsr_e')|strcmp(sysid,'dsr_e_cont'))
 
     % System identification parameters (DSR_e)
     L_sys = 3;              % Number of block rows in extended observability matrix
@@ -63,7 +63,7 @@ elseif (strcmp(sysid,'dsr_e'))
         compare(data, sys);
     end
 
-elseif (strcmp(sysid,'pem'))
+elseif (strcmp(sysid,'pem')|strcmp(sysid,'pem_cont'))
     data = iddata(y_array', u_array', dt);
     sys = pem(data, n_si_dim);
 

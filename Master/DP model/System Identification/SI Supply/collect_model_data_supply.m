@@ -3,12 +3,17 @@ clear, clc, close all;
 addpath("..\..\..\Tools\");
 
 % Load configuration data
-run 'setup_supply_variable_input_prbs';
+% run 'setup_supply_variable_input_prbs';
+run 'setup_supply_variable_input_prbs_cont';
 
 % Type of sys_identification
 % sysid = 'dsr';
 % sysid = 'dsr_e';
 sysid = 'pem';
+
+% sysid = 'dsr_cont';
+% sysid = 'dsr_e_cont';
+% sysid = 'pem_cont';
 
 % Preallocate arrays
 t = 0;

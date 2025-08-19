@@ -9,22 +9,36 @@ run 'Scenarios\supply_scenario_LQ_control_without_disturbance';
 % run 'Scenarios\supply_scenario_LQ_control_with_disturbance';
 
 % Type of sys_identification
-% sysid = 'dsr';
+sysid = 'dsr';
 % sysid = 'dsr_e';
-sysid = 'pem';
+% sysid = 'pem';
+
+run_continous_version = true;
 
 % Save file names and location
 folder = 'Results/LQ_supply';
 file_prefix = strcat(sysid, simulation_type);
 
 % Create model using DSR generated matrices
-load_path = strcat('Log\', sysid, '_ssm_supply');
+if (run_continous_version)
+    load_path = strcat('Log\', sysid, '_cont_ssm_supply');
+else
+    load_path = strcat('Log\', sysid, '_ssm_supply');
+end
 si = load(load_path);
 A_si = si.A;
 B_si = si.B;
 C_si = si.C;
 
 dt = si.dt;
+
+if (run_continous_version)
+    sysd = ss(A_si, B_si, C_si, 0, dt);
+    sys = d2c(sysd);
+    A_si = sys.A;
+    B_si = sys.B;
+    C_si = sys.C;
+end
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by Thor
@@ -74,7 +88,11 @@ for i=1:N
     psi = y_meas(3);
     
     % Calculate discrete supply model matrices
-    [A_lin, B_lin, C_lin] = dp_model_discrete_matrices_si(A_si, B_si, C_si, psi, dt);
+    if (run_continous_version)
+        [A_lin, B_lin, C_lin] = dp_model_discrete_matrices_from_cont_si(A_si, B_si, C_si, psi, dt);
+    else
+        [A_lin, B_lin, C_lin] = dp_model_discrete_matrices_si(A_si, B_si, C_si, psi, dt);
+    end 
 
     % Calculate LQ gain on deviation form
     [G, G1, G2, A_dev, B_dev, C_dev] = calculate_lq_deviation_gain(A_lin, B_lin, C_lin, Q, P);
@@ -146,8 +164,11 @@ for i=1:N
     if (run_kalman_filter)
 
         % Calculate discrete dp model matrices
-        [A_lin, B_lin, F_lin, C_lin] = dp_model_discrete_matrices_si_int(A_si, B_si, C_si, psi, dt);
-
+        if (run_continous_version)
+            [A_lin, B_lin, F_lin, C_lin] = dp_model_discrete_matrices_from_cont_si_int(A_si, B_si, C_si, psi, dt);
+        else
+            [A_lin, B_lin, F_lin, C_lin] = dp_model_discrete_matrices_si_int(A_si, B_si, C_si, psi, dt);
+        end
         % Get Kalman gain from inbuilt MATLAB function dlqe
         [K,~,~,~] = dlqe(A_lin, G_lin, C_lin, W, V);
 
