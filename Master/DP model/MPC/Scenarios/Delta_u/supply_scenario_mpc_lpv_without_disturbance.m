@@ -1,13 +1,10 @@
 % Implementation of MPC strategy to maintain supply boat position and
 % heading. This script assumes the heading rate of change remains constant
-% during the prediction horizon of the MPC. 
-
-% Add seed (meaning og life)
-rng(42,"twister");
+% during the prediction horizon of the MPC.
 
 dt = 1.0;           % Timestep used in integration
 
-T = 500;            % End time
+T = 900;            % End time
 N = ceil(T/dt);     % Number of sample steps
 
 % Select integration method
@@ -16,17 +13,20 @@ N = ceil(T/dt);     % Number of sample steps
 integration_method = IntegrationMethod.Runge_Kutta_Fourth_Order;
 
 % Output files
-folder = "Results/mpc_lpv_du_no_dist";         % Name of folder to store output files
-file_prefix = "mpc_lpv_du_no_dist";            % Prefix of file names
+folder = "Results/mpc_lpv_du_no_dist";                          % Name of folder to store output files
+file_prefix = "mpc_lpv_du_no_dist";                             % Prefix of file names
+workspace_file_name = "mpc_lpv_du_without_dist.mat";            % Name of .mat file
+
+store_workspace = true;                                         % Flag to indicate whether to save workspace to .mat file
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% MPC control parameters %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
 horizon_length = 20;                 % Prediction horizon length
-% Q = diag([1e8, 1e8, 1e10]);        % Error weighting matrix
-% P = diag([1e-6, 1e-6, 1e-6]);      % Input weighting matrix
 
-Q = diag([5e8, 5e8, 5e9]);           % Error weighting matrix
+% Q = diag([5e8, 5e8, 5e8]);           % Error weighting matrix
+% P = diag([1e-4, 1e-4, 1e-6]);        % Input weighting matrix
+Q = diag([1e8, 1e8, 5e8]);           % Error weighting matrix
 P = diag([1e-4, 1e-4, 1e-6]);        % Input weighting matrix
 
 % Quadratic programming options
@@ -44,12 +44,12 @@ setpoint_length = N+horizon_length-1;
 setpoint = zeros(3, setpoint_length);
 for k=1:setpoint_length
     time = k*dt;
-    if (time < 100)
+    if (time < 300)
         setpoint(:,k) = [0; 0; 0];
-    elseif (time < 400)
-        setpoint(:,k) = [10; 5; deg2rad(30)];
+    elseif (time < 600)
+        setpoint(:,k) = [10; 5; deg2rad(26)];
     else
-        setpoint(:,k) = [-5; -5; deg2rad(45)];
+        setpoint(:,k) = [-5; -5; deg2rad(-225)];
     end
 end
 
@@ -105,55 +105,4 @@ use_current_force = false;
 use_wave_force = false;
 use_wind_force = false;
 
-% Current
-current_variance = [1e3; 1e3; 0];
-% current_variance = [0; 0; 0];
-current_start_values = [1e5; 2e5; 0];
-
-current_force = zeros(3,N);
-% Gaussian random walk
-if (use_current_force)
-    current_force(:,1) = current_start_values;
-    for j=2:N
-        current_force(:,j) = current_force(:,j-1) + normrnd(0, current_variance, 3, 1);
-    end
-end
-
-% Wave
-wave_variance = [1e2; 1e2; 1e2];
-% wave_variance = [0; 0; 0];
-wave_start_values = [1e4; 3e4; 5e2];
-
-wave_force = zeros(3,N);
-% Gaussian random walk
-if (use_wave_force)
-    wave_force(:,1) = wave_start_values;
-    for j=2:N
-        wave_force(:,j) = wave_force(:,j-1) + normrnd(0, wave_variance, 3, 1);
-    end
-end
-
-% Wind parameters
-rho = 1.247;        % [kg/m^3] - This is air density at 10 degrees
-Af = 180.0;         % Frontal projected area 
-Al = 311.0;         % Lateral projected area
-L = 76.2;           % Length overall (total length from bow to stern)
-Cx = 0.7;           % Wind coefficient with respect to surge
-Cy = 0.825;         % Wind coefficient with respect to sway
-Cn = 0.125;         % Wind coefficient with respect to yaw
-
-% Estimation of beta (angle of attack) and wind velocity
-wind_variance = [0.1; 0.2]*dt;
-wind_start_values = [deg2rad(35); 10];
-
-wind = zeros(2,N);
-% Gaussian random walk
-if (use_wind_force)
-    wind(:,1) = [wind_start_values(1); wind_start_values(2)];
-    for j=2:N
-        wind(:,j) = wind(:,j-1) + normrnd(0, wind_variance, 2, 1);
-    end
-end
-
-wind_beta = smooth(wind(1,:));
-wind_abs = smooth(wind(2,:));
+run 'common_external_disturbances.m';

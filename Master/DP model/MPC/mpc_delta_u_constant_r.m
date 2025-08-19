@@ -90,12 +90,25 @@ for i=1:N
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     ref = setpoint(:,i:(i+horizon_length-1));
     ref = ref(:);                               % Must be a column vector
-                             
+             
+    % Force and momentum limitations
+    if (use_force_limitation)
+        if (i==1)
+            u_minus_1 = u_array(:,i);
+        else
+            u_minus_1 = u_array(:,i-1);
+        end
+        [Ai, bi] = calculate_force_inequality_matrix(horizon_length, u_minus_1, n_kal_dim, m_dim, r_dim, max_inputs, max_delta_u);
+    else
+        Ai = []; 
+        bi = [];
+    end
+
     % Solve quadratic optimization problem
     [H, c, Ae, be] = calculate_mpc_delta_u_form_constant_rotation_rate_dist(P, Q, A_lin, B_lin, C_lin, F_lin, tau, x_est, u_prev, horizon_length, ref, dt, M, D);
-        
+
     % Optimization solver
-    z = quadprog(H, c, [], [], Ae, be, [], [], z0, options);
+    z = quadprog(H, c, Ai, bi, Ae, be, [], [], z0, options);
     
     % Store previous value for warm starting
     z0 = z; 
@@ -182,3 +195,12 @@ end
 
 % Plot data
 plot_supply_linear_mpc_r_constant(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true, folder, file_prefix);
+
+% Store workspace
+if (store_workspace)
+    % Create folder if it does not exists
+    if (not(isfolder("Workspace")))
+        mkdir("Workspace");
+    end
+    save("Workspace/" + workspace_file_name);
+end

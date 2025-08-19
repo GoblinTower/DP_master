@@ -6,7 +6,8 @@ addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data
-run 'Scenarios\supply_scenario_mpc_control_psi_const';
+run 'Scenarios\Recalculate_reference\supply_scenario_mpc_recalculate_setpoint_with_disturbance';
+% run 'Scenarios\Recalculate_reference\supply_scenario_mpc_recalculate_setpoint_without_disturbance';
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by T.I.
@@ -14,7 +15,7 @@ run 'Scenarios\supply_scenario_mpc_control_psi_const';
 [~, ~, M, D] = supply();
 
 % Initial guess for the MPC optimization problem
-z0 = zeros(horizon_length*(r_dim + n_kal_dim + 2*m_dim),1);
+z0 = zeros(horizon_length*(2*r_dim + n_kal_dim + 2*m_dim),1);
 
 % Preallocate arrays
 t_array = zeros(1,N+1);                 % Time array
@@ -35,9 +36,9 @@ y_meas_array(:,1) = y0_meas;            % Storing initial value of measurement
 u_array = zeros(r_dim,N);               % Control input array
 
 % Initial values
-x = x0;                                 % Initial real state 
+x = x0;                                 % Initial real state
 x_est = x0_est;                         % Initial state estimate
-y_meas = y0_meas;                       % Initial measured value         
+y_meas = y0_meas;                       % Initial measured value
 
 t = 0;                                  % Current time
 
@@ -48,6 +49,9 @@ end
 
 % Store Kalman gain
 K_array = zeros(n_kal_dim*3,N);         % Storing Kalman filter gain
+
+% Get linear body model matrices (remains constant)
+[Ab, Bb, Cb] = body_model_discrete_matrices(M, D, dt, false);
 
 for i=1:N
 
@@ -100,9 +104,26 @@ for i=1:N
         Ai = []; 
         bi = [];
     end
-                            
+
+    % Get position in surge, sway and yaw
+    x_body = [zeros(2,1); x_est(3:6)];
+
+    % Get position in north, east and yaw
+    x_inertial = x_est(1:3);
+
+    % Get difference between setpoint and current position for the entire
+    % prediction horizon
+    r_inertial_body = reshape(ref, 3, horizon_length) - repmat([x_inertial(1:2); 0], 1, horizon_length);
+
+    % Calculate the new references with respect to NED coordinate system
+    r_body = rot'*r_inertial_body;
+    r_body = r_body(:);                               % Must be a column vector
+
+    % Total external forces (includes the current forces
+    tau_all = wind_force_array(:,i) + wave_force_array(:,i) + current_force_array(:,i);
+                     
     % Solve quadratic optimization problem
-    [H, c, Ae, be] = calculate_mpc_standard_form_dist(P, Q, A_lin, B_lin, C_lin, F_lin, tau, x_est, horizon_length, ref);
+    [H, c, Ae, be] = calculate_mpc_delta_u_form_dist(P, Q, Ab, Bb, Cb, Bb, tau_all, x_body, u_prev, horizon_length, r_body);
 
     % Optimization solver
     z = quadprog(H, c, [], [], Ae, be, [], [], z0, options);
@@ -112,6 +133,9 @@ for i=1:N
 
     % Get control signal
     u = z(1:r_dim);
+    
+    % Store control signal for future use
+    u_prev = u;
 
     %%%%%%%%%%%%%%%%%%%%
     %%% Update model %%%

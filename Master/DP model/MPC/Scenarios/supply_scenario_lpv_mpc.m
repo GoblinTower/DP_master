@@ -7,7 +7,7 @@ rng(42,"twister");
 
 dt = 1.0;           % Timestep used in integration
 
-T = 100;            % End time
+T = 500;            % End time
 N = ceil(T/dt);     % Number of sample steps
 
 % Select integration method
@@ -94,9 +94,9 @@ measurement_noise_std = [0.1; 0.1; deg2rad(0.1)];
 %%%%%%%%%%%%%%%%%%%%%%%
 %%% External forces %%%
 %%%%%%%%%%%%%%%%%%%%%%%
-use_current_force = true;
-use_wave_force = true;
-use_wind_force = true;
+use_current_force = false;
+use_wave_force = false;
+use_wind_force = false;
 
 % Current
 current_variance = [1e3; 1e3; 0];

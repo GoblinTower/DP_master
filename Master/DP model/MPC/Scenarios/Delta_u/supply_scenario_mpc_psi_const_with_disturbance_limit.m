@@ -33,9 +33,11 @@ P = diag([1e-4, 1e-4, 1e-6]);        % Input weighting matrix
 options = optimoptions('quadprog', 'display', 'off');
 
 % Force and momentum limitations
-use_force_limitation = false;        % Apply force and momentum limitations
-max_inputs = [1e10; 1e10; 1e10];     % Max allowed force/momentum
-max_delta_u = [1e6; 1e6; 2e7];       % Max allowed change in force/momentum per timestep 
+use_force_limitation = true;         % Apply force and momentum limitations
+max_inputs = [5e6; 5e6; 3e7];        % Max allowed force/momentum
+max_delta_u = [1e6; 1e6; 1e6];       % Max allowed change in force/momentum per timestep
+% max_inputs = [inf; inf; inf];        % Max allowed force/momentum
+% max_delta_u = [inf; inf; inf];       % Max allowed change in force/momentum per timestep 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Setpoints [North, East, Yaw] %%%

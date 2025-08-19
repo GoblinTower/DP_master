@@ -6,10 +6,7 @@ addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data
-% run 'Scenarios\Delta_u\supply_scenario_mpc_psi_const_without_disturbance';
-run 'Scenarios\Delta_u\supply_scenario_mpc_psi_const_with_disturbance';
-% run 'Scenarios\Delta_u\supply_scenario_mpc_psi_const_with_disturbance_limit';
-
+run 'Scenarios\supply_scenario_mpc_psi_const';
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by T.I.
@@ -17,7 +14,7 @@ run 'Scenarios\Delta_u\supply_scenario_mpc_psi_const_with_disturbance';
 [~, ~, M, D] = supply();
 
 % Initial guess for the MPC optimization problem
-z0 = zeros(horizon_length*(2*r_dim + n_kal_dim + 2*m_dim),1);
+z0 = zeros(horizon_length*(r_dim + n_kal_dim + 2*m_dim),1);
 
 % Preallocate arrays
 t_array = zeros(1,N+1);                 % Time array
@@ -38,9 +35,9 @@ y_meas_array(:,1) = y0_meas;            % Storing initial value of measurement
 u_array = zeros(r_dim,N);               % Control input array
 
 % Initial values
-x = x0;                                 % Initial real state
+x = x0;                                 % Initial real state 
 x_est = x0_est;                         % Initial state estimate
-y_meas = y0_meas;                       % Initial measured value
+y_meas = y0_meas;                       % Initial measured value         
 
 t = 0;                                  % Current time
 
@@ -105,19 +102,16 @@ for i=1:N
     end
                             
     % Solve quadratic optimization problem
-    [H, c, Ae, be] = calculate_mpc_delta_u_form_dist(P, Q, A_lin, B_lin, C_lin, F_lin, tau, x_est, u_prev, horizon_length, ref);
+    [H, c, Ae, be] = calculate_mpc_standard_form_dist(P, Q, A_lin, B_lin, C_lin, F_lin, tau, x_est, horizon_length, ref);
 
     % Optimization solver
-    z = quadprog(H, c, Ai, bi, Ae, be, [], [], z0, options);
+    z = quadprog(H, c, [], [], Ae, be, [], [], z0, options);
 
     % Store previous value for warm starting
     z0 = z; 
 
     % Get control signal
     u = z(1:r_dim);
-    
-    % Store control signal for future use
-    u_prev = u;
 
     %%%%%%%%%%%%%%%%%%%%
     %%% Update model %%%
@@ -195,12 +189,3 @@ end
 
 % Plot data
 plot_supply_linear_mpc_psi_constant(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true, folder, file_prefix);
-
-% Store workspace
-if (store_workspace)
-    % Create folder if it does not exists
-    if (not(isfolder("Workspace")))
-        mkdir("Workspace");
-    end
-    save("Workspace/" + workspace_file_name);
-end

@@ -64,11 +64,11 @@ x = x0;
 
 %% First row if Ae
 
+% Get process model matrices
+Ad = A; Bd = B; Fd = F;
+
 % State transition matrix is updated at every time step due to changing yaw angle
 for i=1:(N-1)
-
-    % Get yaw angle
-    psi = x(3);
 
     % Get control signal from previous MPC iteration
     if (i == N-1)
@@ -77,11 +77,14 @@ for i=1:(N-1)
         u_signal = u(:,i+1);
     end
 
-    % Get discrete DP model matrices
-    [Ad, Bd, ~, ~] = dp_fossen_discrete_matrices(M, D, psi, dt, false);
-
     % Estimate future state vectors
-    x = Ad*x + Bd*u_signal;
+    x = Ad*x + Bd*u_signal + Fd*tau;
+
+    % Get yaw angle
+    psi = x(3);
+
+    % Get discrete DP model matrices
+    [Ad, Bd, Fd, ~] = dp_fossen_discrete_matrices(M, D, psi, dt, false);
 
     Ae1x((i*n_dim+1):((i+1)*n_dim),((i-1)*n_dim+1):(i*n_dim)) = -Ad;
 end
@@ -123,4 +126,3 @@ Ae = [
      ];
 
 be = [be1; be2; be3; be4];
-

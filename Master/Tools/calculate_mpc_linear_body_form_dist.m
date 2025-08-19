@@ -1,4 +1,4 @@
-function [H, c, Ae, be] = calculate_mpc_delta_u_form_constant_rotation_rate_dist(P, Q, A, B, C, F, tau, x0, um1, N, ref, dt, M, D)
+function [H, c, Ae, be] = calculate_mpc_linear_body_form_dist(P, Q, A, B, C, F, tau, x0, um1, N, ref)
 % This function computes the matrices of MPC on standard form:
 %
 % (1/2)*z'*H*z + c'z
@@ -55,23 +55,7 @@ c = zeros(z_dim, 1);
 
 % First row
 Ae1u = -kron(eye(N), B);
-
-% Must recompute A for every timestep
-Ae1x = eye(N*n_dim);
-
-psi = x0(3);                        % Yaw position at current time
-r = x0(6);                          % Yaw rate at current time
-
-for i=1:(N-1)
-
-    % Update rotation matrix
-    psi = psi + r*dt;               % Update yaw assuming constant yaw rate;
-
-    [A_mod, B_mod, ~, ~] = dp_fossen_discrete_matrices(M, D, psi, dt, false);
-
-    Ae1x((i*n_dim+1):((i+1)*n_dim),((i-1)*n_dim+1):(i*n_dim)) = -A_mod;
-
-end
+Ae1x = eye(N*n_dim) - kron(diag(ones(N-abs(-1),1),-1), A);
 Ae1e = zeros(N*n_dim, N*m_dim);
 Ae1y = zeros(N*n_dim, N*m_dim);
 Ae1du = zeros(N*n_dim, N*r_dim);
