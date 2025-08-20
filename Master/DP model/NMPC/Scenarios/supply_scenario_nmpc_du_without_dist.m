@@ -2,7 +2,7 @@
 % developed by Thor Inge Fossen. The control signal is calculated
 % using a non-linear MPC.
 
-dt = 1.0;           % Timestep used in integration
+dt = 1;             % Timestep used in integration
 
 T = 500;            % End time
 N = ceil(T/dt);     % Number of sample steps
@@ -15,9 +15,9 @@ N = ceil(T/dt);     % Number of sample steps
 integration_method = IntegrationMethod.Runge_Kutta_Fourth_Order;
 
 % Output files
-folder = "Results/nmpc_no_dist";                % Name of folder to store output files
-file_prefix = "nmpc_no_dist_";                  % Prefix of file names
-workspace_file_name = 'nmpc_no_dist_data';      % Name of workspace file
+folder = "Results/nmpc_du_no_dist";                % Name of folder to store output files
+file_prefix = "nmpc_du_no_dist_";                  % Prefix of file names
+workspace_file_name = 'nmpc_du_no_dist_data';      % Name of workspace file
 
 store_workspace = true;
 
@@ -29,11 +29,17 @@ groups = [2,8,10];                   % Grouping
 % Q = diag([1e11, 1e11, 1e11]);        % Error weighting matrix
 % P = 1.0*diag([1, 1, 1]);             % Input weighting matrix
 % P = 1.0*diag([1, 1, 0.00001]);       % Input weighting matrix
+% Q = diag([1e11, 1e11, 1e12]);        % Error weighting matrix
+% P = 1.0*diag([1, 1, 1e-4]);          % Input weighting matrix
+% Q = diag([1e11, 1e11, 1e12]);        % Error weighting matrix
+% P = 1.0*diag([1, 1, 1e-4]);          % Input weighting matrix
+% Q = diag([1e8, 1e8, 5e8]);           % Error weighting matrix
+% P = diag([1e-4, 1e-4, 1e-6]);        % Input weighting matrix
 Q = diag([5e8, 5e8, 1e9]);           % Error weighting matrix
 P = diag([1e-4, 1e-4, 1e-6]);        % Input weighting matrix
 
-% options = optimoptions('fmincon', 'display', 'iter','Algorithm','sqp');
 options = optimoptions('fmincon', 'display', 'off');
+% options = optimoptions('fmincon', 'display', 'iter','Algorithm','sqp');
 
 % Initial guess of control signal for non-linear optimization algorithm
 u0 = zeros(3,horizon_length);
@@ -66,7 +72,6 @@ x0_est = [0; 0; 0; 0; 0; 0; 0; 0; 0];       % Initial state estimate
 n_kal_dim = size(x0_est,1);                 % Number of states in Kalman filter
 G_lin = eye(n_kal_dim);                     % Process noise matrix
 
-% p_aposteriori = 1.0*eye(9);                 % Aposteriori covariance estimate
 x_aposteriori = x0_est;                     % Aposteriori state estimate
 
 animate_kalman_estimate = true;             % Animate kalman estimate

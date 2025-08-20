@@ -15,9 +15,9 @@ N = ceil(T/dt);     % Number of sample steps
 integration_method = IntegrationMethod.Runge_Kutta_Fourth_Order;
 
 % Output files
-folder = "Results/nmpc_no_dist";                % Name of folder to store output files
-file_prefix = "nmpc_no_dist_";                  % Prefix of file names
-workspace_file_name = 'nmpc_no_dist_data';      % Name of workspace file
+folder = "Results/nmpc_du_dist";                   % Name of folder to store output files
+file_prefix = "nmpc_du_dist_";                     % Prefix of file names
+workspace_file_name = 'nmpc_du_dist_data';         % Name of workspace file
 
 store_workspace = true;
 
@@ -28,7 +28,12 @@ groups = [2,8,10];                   % Grouping
 % Q = diag([1e14, 1e14, 1e16]);        % Error weighting matrix
 % Q = diag([1e11, 1e11, 1e11]);        % Error weighting matrix
 % P = 1.0*diag([1, 1, 1]);             % Input weighting matrix
+% P = 1.0*diag([1e-2, 1e-2, 1e-5]);    % Input weighting matrix
+% Q = diag([1e11, 1e11, 1e11]);        % Error weighting matrix
+% P = 1.0*diag([1, 1, 1]);             % Input weighting matrix
 % P = 1.0*diag([1, 1, 0.00001]);       % Input weighting matrix
+% Q = diag([1e11, 1e11, 1e12]);        % Error weighting matrix
+% P = 1.0*diag([1, 1, 1e-4]);          % Input weighting matrix
 Q = diag([5e8, 5e8, 1e9]);           % Error weighting matrix
 P = diag([1e-4, 1e-4, 1e-6]);        % Input weighting matrix
 
@@ -98,8 +103,8 @@ measurement_noise_std = [0.2; 0.2; 0.1];
 %%%%%%%%%%%%%%%%%%%%%%%
 %%% External forces %%%
 %%%%%%%%%%%%%%%%%%%%%%%
-use_current_force = false;
-use_wave_force = false;
-use_wind_force = false;
+use_current_force = true;
+use_wave_force = true;
+use_wind_force = true;
 
 run 'common_external_disturbances.m';
