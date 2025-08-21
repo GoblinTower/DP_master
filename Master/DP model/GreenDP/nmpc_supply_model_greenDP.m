@@ -10,8 +10,19 @@ addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data
-% run 'Scenarios\NMPC_control_tracking_without_disturbance';
-run 'Scenarios\NMPC_control_tracking_with_disturbance';
+
+% Circle scenario
+% run 'Scenarios\Circle\supply_scenario_nmpc_with_dist_no_green_dp_circle';
+% run 'Scenarios\Circle\supply_scenario_nmpc_with_dist_green_dp_circle';
+
+% Drift
+% run 'Scenarios\Drift\supply_scenario_nmpc_with_dist_no_green_dp_drift';
+% run 'Scenarios\Drift\supply_scenario_nmpc_with_dist_green_dp_drift';
+
+% Mild (small weather disturbances)
+% run 'Scenarios\Mild\supply_scenario_nmpc_with_dist_no_green_dp_mild';
+run 'Scenarios\Mild\supply_scenario_nmpc_with_dist_green_dp_mild';
+
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by Thor
@@ -86,12 +97,20 @@ for i=1:N
     % Solve non-linear optimization problem
     if (run_kalman_filter)
         % Use state from Kalman filter
-        u_sol = fmincon(@(u) non_linear_objective_function(u, tau, ref, M, D, P, Q, x_est, horizon_length, dt, 1), u0, [], [], [], [], [], [], [], options);
+        if (run_green_dp)
+             u_sol = fmincon(@(u) non_linear_green_dp_objective_function(u, tau, ref, M, D, P_green, R1, W1, W2, x_est, horizon_length, dt, 1), u0, [], [], [], [], [], [], @(u) grouping(u, groups), options);
+        else
+             u_sol = fmincon(@(u) non_linear_objective_du_function(u, tau, ref, M, D, P, Q, x_est, u0(:,1), horizon_length, dt, 1), u0, [], [], [], [], [], [], @(u) grouping(u, groups), options);
+        end
     else
         % Use real state (assumed known, perfect information)
         % b is unknown, and hence set to zero
         x_extended = [x; 0; 0; 0];
-        u_sol = fmincon(@(u) non_linear_objective_function(u, tau, ref, M, D, P, Q, x_extended, horizon_length, dt, 1), u0, [], [], [], [], [], [], [], options);
+        if (run_green_dp)
+             u_sol = fmincon(@(u) non_linear_green_dp_objective_function(u, tau, ref, M, D, P_green, R1, W1, W2, x_extended, horizon_length, dt, 1), u0, [], [], [], [], [], [], @(u) grouping(u, groups), options);
+        else
+             u_sol = fmincon(@(u) non_linear_objective_du_function(u, tau, ref, M, D, P, Q, x_extended, horizon_length, dt, 1), u0, [], [], [], [], [], [], @(u) grouping(u, groups), options);
+        end
     end
 
     % Store old value of optimal control input for initial guess in next
@@ -173,4 +192,13 @@ for i=1:N
 end
 
 % Plot data
-plot_nmpc_tracking(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true, folder, file_prefix);
+plot_supply_nmpc_green_dp(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true, folder, file_prefix, R1, setpoint(1:2,1));
+
+% Store workspace
+if (store_workspace)
+    % Create folder if it does not exists
+    if (not(isfolder("Workspace")))
+        mkdir("Workspace");
+    end
+    save("Workspace/" + workspace_file_name);
+end
