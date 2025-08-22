@@ -42,7 +42,7 @@ u0 = zeros(3,horizon_length);
 run_green_dp = false;
 
 W1 = 1e2;               % Green DP weight (1)
-W2 = 1e8;               % Green DP weight (2)
+W2 = 1e14;              % Green DP weight (2)
 R1 = 5;                 % Distance to border
 
 P_green = eye(3);       % Weighting of input

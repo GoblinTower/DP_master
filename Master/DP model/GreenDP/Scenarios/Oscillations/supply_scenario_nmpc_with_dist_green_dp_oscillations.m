@@ -15,11 +15,11 @@ N = ceil(T/dt);     % Number of sample steps
 integration_method = IntegrationMethod.Runge_Kutta_Fourth_Order;
 
 % Output files
-folder = "Results/nmpc_green_dp_dist_mild";             % Name of folder to store output files
-file_prefix = "nmpc_green_dp_dist_mild_";               % Prefix of file names
-workspace_file_name = "nmpc_green_dp_dist_mild_data";   % File name of .mat file
+folder = "Results/nmpc_green_dp_dist_oscillations";              % Name of folder to store output files
+file_prefix = "nmpc_green_dp_dist_mild_oscillations_";           % Prefix of file names
+workspace_file_name = "nmpc_green_dp_dist_oscillations_data";    % File name of .mat file
 
-store_workspace = true;                                 % Should the workspace be stored after running the simulation?
+store_workspace = true;                                          % Should the workspace be stored after running the simulation?
 
 % MPC control parameters
 horizon_length = 20;                 % Prediction horizon length
@@ -111,4 +111,4 @@ use_current_force = true;
 use_wave_force = true;
 use_wind_force = true;
 
-run 'common_external_disturbances_mild.m';
+run 'common_external_disturbances_oscillations.m';

@@ -7,7 +7,8 @@ addpath("..\..\Tools\");
 % Circle: Current changes 360 degrees during 800 seconds run
 % scenario = 'circle';
 % scenario = 'drift';
-scenario = 'mild';
+% scenario = 'mild';
+scenario = 'oscillations';
 
 if (strcmp(scenario, 'circle'))
 
@@ -44,7 +45,20 @@ elseif (strcmp(scenario, 'mild'))
     lmf = [normal_nmpc, green_dp];                  % Shortcut for List of .Mat Files
     nos = {'Normal NMPC', 'Green DP'};              % Shortcut for Name Of Simulations
     
-    storage_path = 'Workspace\Drift';               % Path where plots are stored
+    storage_path = 'Workspace\GreenDP';             % Path where plots are stored
+    
+    show_setpoints = false;                         % Show setpoints in plot
+
+elseif (strcmp(scenario, 'oscillations'))
+        
+    % Load data from drift scenario
+    normal_nmpc = load('Workspace\nmpc_no_green_dp_dist_oscillations_data.mat');
+    green_dp = load('Workspace\nmpc_green_dp_dist_oscillations_data.mat');
+    
+    lmf = [normal_nmpc, green_dp];                  % Shortcut for List of .Mat Files
+    nos = {'Normal NMPC', 'Green DP'};              % Shortcut for Name Of Simulations
+    
+    storage_path = 'Workspace\Oscillations';        % Path where plots are stored
     
     show_setpoints = false;                         % Show setpoints in plot
 

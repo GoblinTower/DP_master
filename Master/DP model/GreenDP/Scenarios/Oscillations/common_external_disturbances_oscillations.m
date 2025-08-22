@@ -9,7 +9,6 @@ rng(42,"twister");
 
 % Current
 current_variance = [5e3; 5e3; 0];
-% current_variance = [0; 0; 0];
 current_start_values = [0; 0; 0];
 current_reduction_factor = 1.0;
 
@@ -23,21 +22,40 @@ if (use_current_force)
     end
 end
 
-% Wave
+% Waves
+% First order wave drift
 wave_variance = [1e3; 1e3; 1e3];
-% wave_variance = [0; 0; 0];
 wave_start_values = [0; 0; 0];
 wave_reduction_factor = 1.0;
 
+% Second order wave oscillations
+wave_period = 25;                    % Wave period in seconds
+wave_direction_2_order = 0;          % Direction of wave oscillations (radians)
+amplitude_force_2_order = 1e4;       % Wave force in Newton
+
 wave_force = zeros(3,N);
+wave_force_1_order = zeros(3,N);
+wave_force_2_order = zeros(3,N);
 % Gaussian random walk
 if (use_wave_force)
-    wave_force(:,1) = wave_start_values;
+    wave_force_1_order(:,1) = wave_start_values;
     for j=2:N
-        wave_force(:,j) = wave_force(:,j-1) + normrnd(0, wave_variance, 3, 1);
-        wave_force(:,j) = wave_reduction_factor*wave_force(:,j);
+        
+        % First order wave drift
+        wave_force_1_order(:,j) = wave_force_1_order(:,j-1) + normrnd(0, wave_variance, 3, 1);
+        
+        % Second order wave drift
+        wave_direction_2_order = atan2(wave_force_1_order(2,j), wave_force_1_order(1,j));       % Direction same as 1. order wave forces
+        
+        absolute_wave_force_2_order = cos((j*dt/25)*2*pi)*amplitude_force_2_order;              % Make force sinusoidal with constant period
+
+        wave_force_2_order(:,j) = [cos(wave_direction_2_order)*absolute_wave_force_2_order; ...
+            sin(wave_direction_2_order)*absolute_wave_force_2_order; 0];
     end
 end
+
+wave_force = wave_force_1_order + wave_force_2_order;
+wave_force = wave_reduction_factor*wave_force;
 
 % Wind parameters
 rho = 1.247;        % [kg/m^3] - This is air density at 10 degrees

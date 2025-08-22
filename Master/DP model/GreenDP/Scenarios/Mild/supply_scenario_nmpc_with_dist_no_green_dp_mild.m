@@ -46,8 +46,8 @@ run_green_dp = false;
 % R1 = 5;                  % Distance to border
 
 W1 = 1e2;                % Green DP weight (1)
-W2 = 1e6;                % Green DP weight (2)
-R1 = 10;                 % Distance to border
+W2 = 1e14;               % Green DP weight (2)
+R1 = 5;                  % Distance to border
 
 P_green = eye(3);       % Weighting of input
 

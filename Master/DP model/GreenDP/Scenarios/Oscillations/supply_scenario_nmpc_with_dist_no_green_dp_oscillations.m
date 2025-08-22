@@ -15,11 +15,11 @@ N = ceil(T/dt);     % Number of sample steps
 integration_method = IntegrationMethod.Runge_Kutta_Fourth_Order;
 
 % Output files
-folder = "Results/nmpc_green_dp_dist_mild";             % Name of folder to store output files
-file_prefix = "nmpc_green_dp_dist_mild_";               % Prefix of file names
-workspace_file_name = "nmpc_green_dp_dist_mild_data";   % File name of .mat file
+folder = "Results/nmpc_no_green_dp_dist_oscillations";                % Name of folder to store output files
+file_prefix = "nmpc_no_green_dp_dist_oscillations_";                  % Prefix of file names
+workspace_file_name = "nmpc_no_green_dp_dist_oscillations_data";      % File name of .mat file
 
-store_workspace = true;                                 % Should the workspace be stored after running the simulation?
+store_workspace = true;                                               % Should the workspace be stored after running the simulation?
 
 % MPC control parameters
 horizon_length = 20;                 % Prediction horizon length
@@ -39,7 +39,7 @@ u0 = zeros(3,horizon_length);
 %%%%%%%%%%%%%%%%
 %%% Green DP %%%
 %%%%%%%%%%%%%%%%
-run_green_dp = true;
+run_green_dp = false;
 
 % W1 = 1e2;                % Green DP weight (1)
 % W2 = 1e8;                % Green DP weight (2)
@@ -75,7 +75,7 @@ x0_est = [0; 0; 0; 0; 0; 0; 0; 0; 0];       % Initial state estimate
 n_kal_dim = size(x0_est,1);                 % Number of states in Kalman filter
 G_lin = eye(n_kal_dim);                     % Process noise matrix
 
-% p_aposteriori = 1.0*eye(9);               % Aposteriori covariance estimate
+% p_aposteriori = 1.0*eye(9);                 % Aposteriori covariance estimate
 x_aposteriori = x0_est;                     % Aposteriori state estimate
 
 animate_kalman_estimate = true;             % Animate kalman estimate
@@ -111,4 +111,4 @@ use_current_force = true;
 use_wave_force = true;
 use_wind_force = true;
 
-run 'common_external_disturbances_mild.m';
+run 'common_external_disturbances_oscillations.m';

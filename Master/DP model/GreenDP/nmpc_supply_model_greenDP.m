@@ -21,8 +21,11 @@ addpath("..\..\Tools\");
 
 % Mild (small weather disturbances)
 % run 'Scenarios\Mild\supply_scenario_nmpc_with_dist_no_green_dp_mild';
-run 'Scenarios\Mild\supply_scenario_nmpc_with_dist_green_dp_mild';
+% run 'Scenarios\Mild\supply_scenario_nmpc_with_dist_green_dp_mild';
 
+% Oscillations
+run 'Scenarios\Oscillations\supply_scenario_nmpc_with_dist_no_green_dp_oscillations';
+% run 'Scenarios\Oscillations\supply_scenario_nmpc_with_dist_green_dp_oscillations';
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by Thor
