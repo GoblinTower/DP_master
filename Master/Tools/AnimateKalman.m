@@ -22,8 +22,8 @@ classdef AnimateKalman < handle
             % Position plot
             subplot(1,2,1);
             title('Ship position (north, east)');
-            xlabel('North position [m]');
-            ylabel('East position [m]');
+            xlabel('East position [m]');
+            ylabel('North position [m]');
             legend();
 
             obj.plot_estimated_position_handle = animatedline('Color','b',...

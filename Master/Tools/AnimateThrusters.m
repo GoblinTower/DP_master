@@ -1,5 +1,10 @@
 classdef AnimateThrusters < handle
-% Simple plot that animates the ship angle and thruster forces
+% Simple class that animates the ship angle and thruster forces.
+%
+% The class depicts five plots:
+% (1) Depiction of vessel and individually thruster forces.
+% (2) Depiction of lineplots for each thruster force generated.
+%
 
     properties
         ship_figure;             % Handle to ship figure
@@ -21,7 +26,14 @@ classdef AnimateThrusters < handle
     methods
 
         function obj = AnimateThrusters(length, breadth, thruster_positions, thruster_names)
-            
+        % This is the constructor to the class.
+        % INPUTS:
+        % length                : Refers to the length of the vessel.
+        % breadth               : Refers to the breadth of the vessel.
+        % thruster_position     : Matrix referencing position of thrusters on vessel.
+        % thruster names        : Name of each thruster (used in plots).
+        %
+        
             % Initialized the figure
             obj.ship_figure = figure(300);
             
@@ -57,23 +69,35 @@ classdef AnimateThrusters < handle
             end
             obj.thruster_force_handle = tmp;
 
-            legend(obj.thruster_force_axes);
+            legend(obj.thruster_force_axes, tmp);
            
         end 
       
         function UpdatePlot(obj, t, heading, thruster_forces, thruster_angles, scale_forces)
+        % Function called every iteration of the simulation. This updates
+        % all the plots.
+        %
+        % INPUTS:
+        % t                     : Current simulation time.
+        % heading               : Vessel heading (in radians).
+        % thruster_forces       : Array of thruster forces.
+        % thruster_angles       : Array of thruster angles.
+        % scale_forces          : Scaling values of individual thruster forces (avoid too long force rectangles in plots). 
+        %
 
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%
-            %%% Ship depiction plot %%%
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%
-            cla(obj.ship_figure_axes);
-            length = obj.ship_length; 
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%% Force plot of individual thruster forces %%%
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
             breadth = obj.ship_breadth;
+                        
+            hold on
+            cla(obj.ship_figure_axes);
 
             % Ship shape
             current_ship = rotate(obj.ship_shape, -rad2deg(heading), [0,0]);
        
-            hold on
+
             % Forces and momentum
             plot(obj.ship_figure_axes, current_ship);           % Always plot ship
 
@@ -119,15 +143,15 @@ classdef AnimateThrusters < handle
             end
 
             % Update plot information
-            title(obj.ship_figure_axes, "Visual depiction of thrusters");
+            title(obj.ship_figure_axes, "Individual thruster forces");
             axes(obj.ship_figure_axes)
             axis equal;
             
             hold off
 
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%
-            %%% Thruster force plot %%%
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%% Individal thruster force plot %%%
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             for i=1:obj.number_of_thrusters
                 addpoints(obj.thruster_force_handle(i), t, thruster_forces(i));
             end

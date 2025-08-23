@@ -14,8 +14,8 @@ function [iae, tv] = plot_data(lmf, nos, storage_path, show_setpoints)
 %
 
 % Create folder if it does not exists
-if (not(isfolder("Workspace\Plots")))
-    mkdir("Workspace\Plots");
+if (not(isfolder(storage_path)))
+    mkdir(storage_path);
 end
 
 % Check that length of 'lmf' and 'name_of_simulations' are equal.

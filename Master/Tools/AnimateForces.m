@@ -1,9 +1,11 @@
 classdef AnimateForces < handle
-% Simple plot that animates the ship angle and forces applied to ship
+% Simple class that animates the ship angle and forces applied to ship
 
     properties
         ship_figure;             % Handle to ship figure
-        ship_figure_axes;        % Handle to figure axes
+
+        ship_figure_axes;        % Handle to plot axes
+
         ship_shape;              % Ship shape
     
         ship_length;             % Length of ship
@@ -13,7 +15,12 @@ classdef AnimateForces < handle
     methods
 
         function obj = AnimateForces(length, breadth)
-            
+        % This is the constructor to the class.
+        % INPUTS:
+        % length                : Refers to the length of the vessel.
+        % breadth               : Refers to the breadth of the vessel.
+        % 
+
             % Initialized the figure
             obj.ship_figure = figure(200);
             obj.ship_figure_axes = axes;
@@ -28,35 +35,53 @@ classdef AnimateForces < handle
   
         end
       
-        function UpdatePlot(obj, heading, force_north, force_east, momentum_yaw, scale_north, scale_east, scale_yaw)
+        function UpdatePlot(obj, heading, force_surge, force_sway, momentum_yaw, scale_surge, scale_sway, scale_yaw)
+        % Function called every iteration of the simulation. This updates
+        % all the plots.
+        %
+        % INPUTS:
+        % heading               : Vessel heading (in radians).
+        % force_surge           : Thruster force in surge.
+        % force_sway            : Thruster force in sway.
+        % momentum_yaw          : Thruster momentum in yaw.
+        % scale_surge           : Scaling of force in surge direction. 
+        % scale_sway            : Scaling of force in sway direction. 
+        % scale_momentum        : Scaling of momentum in yaw direction. 
+        %
 
             cla(obj.ship_figure_axes);
             length = obj.ship_length; 
             breadth = obj.ship_breadth;
 
-            force_north = force_north/scale_north;
-            force_east = force_east/scale_east;
+            force_surge = force_surge/scale_surge;
+            force_sway = force_sway/scale_sway;
             momentum_yaw = momentum_yaw/scale_yaw;
+            
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%% Force plots in surge, sway and yaw %%%
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             % Ship shape
             current_ship = rotate(obj.ship_shape, -rad2deg(heading), [0,0]);
        
             hold on
             % Forces and momentum
-            plot(obj.ship_figure_axes, current_ship);           % Always plot ship
+            plot(obj.ship_figure_axes, current_ship);                                           % Always plot ship
 
-            if (force_north ~= 0)
-                force_north_shape = polyshape([-breadth/20, breadth/20, breadth/20, -breadth/20], ...
-                                              [0, 0, force_north, force_north]);
-                current_force_north = rotate(force_north_shape, -rad2deg(heading), [0,0]);
-                plot(obj.ship_figure_axes, current_force_north);
+            title(obj.ship_figure_axes, "Forces in surge, sway and yaw due to thrusters")       % Plot title
+
+            if (force_surge ~= 0)
+                force_surge_shape = polyshape([-breadth/20, breadth/20, breadth/20, -breadth/20], ...
+                                              [0, 0, force_surge, force_surge]);
+                current_force_surge = rotate(force_surge_shape, -rad2deg(heading), [0,0]);
+                plot(obj.ship_figure_axes, current_force_surge);
             end
             
-            if (force_east ~= 0)
-                force_east_shape = polyshape([0, 0, force_east, force_east], ...
+            if (force_sway ~= 0)
+                force_sway_shape = polyshape([0, 0, force_sway, force_sway], ...
                                              [-breadth/20, breadth/20, breadth/20, -breadth/20]);
-                current_force_east = rotate(force_east_shape, -rad2deg(heading), [0,0]);
-                plot(obj.ship_figure_axes, current_force_east);
+                current_force_sway = rotate(force_sway_shape, -rad2deg(heading), [0,0]);
+                plot(obj.ship_figure_axes, current_force_sway);
             end
 
             if (momentum_yaw ~= 0)
@@ -70,11 +95,6 @@ classdef AnimateForces < handle
             axis equal;
 
             hold off
-
-            % Plot bar plot
-            % name = ['Force surge', 'Force sway', 'Momentum east'];
-            % values = [force_north, force_east, momentum_yaw];
-            % bar(obj.ship_bar_axes, name, values);
 
             drawnow;
         end

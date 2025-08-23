@@ -2,7 +2,8 @@ function T = thruster_configuration_matrix(alpha)
 % Define thruster configuration matrix
 % First column: Main propeller port
 % Second column: Main propeller starboard
-% Third column: Azimuth propeller
+% Third column: Bow azimuth
+% Fourth column: Aft azimuth
 
 % Thruster setup
 main_port_propeller_y_distance = -3;
