@@ -14,8 +14,11 @@ sysid = 'dsr';
 % sysid = 'pem';
 
 % Save file names and location
-folder = 'Results/LQ_supply';
-file_prefix = strcat(sysid, simulation_type);
+folder = strcat('Results\OSV\',sysid);
+file_prefix = strcat('osv_', sysid, simulation_type);
+
+store_workspace = true;
+workspace_file_name = file_prefix;
 
 % Create model using DSR generated matrices
 load_path = strcat('Log\', sysid, '_ssm_osv');
@@ -181,6 +184,11 @@ end
 % Plot data
 plot_osv_model_lq(t_array, x_array, K_array, u_array, setpoint, true, folder, file_prefix);
 
-% Store data
-save_destination = strcat(folder, '/', file_prefix, '_data');
-save(save_destination);
+% Store workspace
+if (store_workspace)
+    % Create folder if it does not exists
+    if (not(isfolder("Workspace")))
+        mkdir("Workspace");
+    end
+    save("Workspace/" + workspace_file_name);
+end

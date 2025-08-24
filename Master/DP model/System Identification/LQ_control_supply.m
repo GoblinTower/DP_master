@@ -9,15 +9,18 @@ run 'Scenarios\supply_scenario_LQ_control_without_disturbance';
 % run 'Scenarios\supply_scenario_LQ_control_with_disturbance';
 
 % Type of sys_identification
-sysid = 'dsr';
+% sysid = 'dsr';
 % sysid = 'dsr_e';
-% sysid = 'pem';
+sysid = 'pem';
 
-run_continous_version = true;
+run_continous_version = false;
 
 % Save file names and location
-folder = 'Results/LQ_supply';
-file_prefix = strcat(sysid, simulation_type);
+folder = strcat('Results\LQ_supply\',sysid);
+file_prefix = strcat('supply_', sysid, simulation_type);
+
+store_workspace = true;
+workspace_file_name = file_prefix;
 
 % Create model using DSR generated matrices
 if (run_continous_version)
@@ -25,6 +28,7 @@ if (run_continous_version)
 else
     load_path = strcat('Log\', sysid, '_ssm_supply');
 end
+
 si = load(load_path);
 A_si = si.A;
 B_si = si.B;
@@ -218,6 +222,11 @@ end
 % Plot data
 plot_dp_model_lq(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true, folder, file_prefix);
 
-% Store data
-save_destination = strcat(folder, '/', file_prefix, '_data');
-save(save_destination);
+% Store workspace
+if (store_workspace)
+    % Create folder if it does not exists
+    if (not(isfolder("Workspace")))
+        mkdir("Workspace");
+    end
+    save("Workspace/" + workspace_file_name);
+end

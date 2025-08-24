@@ -3,7 +3,7 @@
 % This function was developed by David Di Ruscio.
 clear, clc, close all;
 
-addpath("..\..\Tools\");
+addpath("..\");
 
 Tmin = 50;      % Maximum interval of constant signal
 Tmax = 150;     % Minimum interval of constant signal

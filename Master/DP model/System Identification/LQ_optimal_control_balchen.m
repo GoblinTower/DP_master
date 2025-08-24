@@ -14,8 +14,11 @@ run 'Scenarios\balchen_scenario_LQ_control_without_disturbance';
 sysid = 'pem';
 
 % Save file names and location
-folder = 'Results/LQ_balchen';
-file_prefix = strcat(sysid, simulation_type);
+folder = strcat('Results\Balchen\',sysid);
+file_prefix = strcat('balchen_', sysid, simulation_type);
+
+store_workspace = true;
+workspace_file_name = file_prefix;
 
 % Create model using DSR generated matrices
 load_path = strcat('Log\', sysid, '_ssm_balchen');
@@ -201,3 +204,12 @@ plot_balchen_model_lq(t_array, x_array, x_est_array, K_array, u_array, wind_abs,
 % Store data
 save_destination = strcat(folder, '/', file_prefix, '_data');
 save(save_destination);
+
+% Store workspace
+if (store_workspace)
+    % Create folder if it does not exists
+    if (not(isfolder("Workspace")))
+        mkdir("Workspace");
+    end
+    save("Workspace/" + workspace_file_name);
+end
