@@ -1,6 +1,6 @@
 % Implementation of MPC strategy to maintain supply boat position and
 % heading. This script assumes the heading rate of change remains constant
-% during the prediction horizon of the MPC.
+% during the prediction horizon of the MPC. 
 
 dt = 1.0;           % Timestep used in integration
 
@@ -13,11 +13,11 @@ N = ceil(T/dt);     % Number of sample steps
 integration_method = IntegrationMethod.Runge_Kutta_Fourth_Order;
 
 % Output files
-folder = "Results/mpc_lpv_du_no_dist";                          % Name of folder to store output files
-file_prefix = "mpc_lpv_du_no_dist";                             % Prefix of file names
-workspace_file_name = "mpc_lpv_du_without_dist.mat";            % Name of .mat file
+folder = "Results/mpc_lpv_with_dist";                             % Name of folder to store output files
+file_prefix = "mpc_lpv_with_dist_";                               % Prefix of file names
+workspace_file_name = "mpc_lpv_du_with_dist.mat";                 % Name of .mat file
 
-store_workspace = true;                                         % Flag to indicate whether to save workspace to .mat file
+store_workspace = true;                                           % Flag to indicate whether to save workspace to mat file
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% MPC control parameters %%%
@@ -101,8 +101,8 @@ measurement_noise_std = [0.1; 0.1; deg2rad(0.1)];
 %%%%%%%%%%%%%%%%%%%%%%%
 %%% External forces %%%
 %%%%%%%%%%%%%%%%%%%%%%%
-use_current_force = false;
-use_wave_force = false;
-use_wind_force = false;
+use_current_force = true;
+use_wave_force = true;
+use_wind_force = true;
 
 run 'common_external_disturbances.m';

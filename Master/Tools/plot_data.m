@@ -64,7 +64,7 @@ for i=1:number_of_simulations
 
     nexttile;
     hold on;
-    plot(lmf(i).t_array(1:length_time), lmf(i).u_array(1,:))
+    plot(lmf(i).t_array(1:length_time), lmf(i).u_array(1,1:length_time))
     grid();
     title(strcat('Force in surge (', nos(i), ')'));
     xlabel('t [s]');
@@ -80,7 +80,7 @@ for i=1:number_of_simulations
 
     nexttile;
     hold on;
-    plot(lmf(i).t_array(1:length_time), lmf(i).u_array(2,:))
+    plot(lmf(i).t_array(1:length_time), lmf(i).u_array(2,1:length_time))
     grid();
     title(strcat('Force in sway (', nos(i), ')'));
     xlabel('t [s]');
@@ -96,7 +96,7 @@ for i=1:number_of_simulations
 
     nexttile;
     hold on;
-    plot(lmf(i).t_array(1:length_time), lmf(i).u_array(3,:))
+    plot(lmf(i).t_array(1:length_time), lmf(i).u_array(3,1:length_time))
     grid();
     title(strcat('Momentum in yaw (', nos(i), ')'));
     xlabel('t [s]');

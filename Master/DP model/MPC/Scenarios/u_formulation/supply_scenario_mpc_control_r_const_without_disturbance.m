@@ -13,11 +13,11 @@ N = ceil(T/dt);     % Number of sample steps
 integration_method = IntegrationMethod.Runge_Kutta_Fourth_Order;
 
 % Output files
-folder = "Results/mpc_recalculate_setpoint_du_with_dist";                   % Name of folder to store output files
-file_prefix = "mpc_recalculate_setpoint_du_with_dist";                      % Prefix of file names
-workspace_file_name = "mpc_recalculate_setpoint_du_with_dist.mat";          % Name of .mat file
+folder = "Results/mpc_const_r_u_without_dist";                    % Name of folder to store output files
+file_prefix = "mpc_const_r_u_without_dist_";                      % Prefix of file names
+workspace_file_name = "mpc_const_r_u_without_dist.mat";           % Name of .mat file
 
-store_workspace = true;                                                     % Flag to indicate whether to save workspace to mat file
+store_workspace = true;                                           % Flag to indicate whether to save workspace to mat file
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% MPC control parameters %%%
@@ -76,16 +76,14 @@ animation_delay = 0.01;                           % Animation speed (in seconds)
 % x = [x, y, psi, u, v, r]
 % y = [x, y, psi]
 
-x0 = [0; 0; 0; 0; 0; 0];                          % Initial values of states (real)
-% x0 = [0.5; 0.5; deg2rad(2); 0; 0; 0];           % Initial values of states (real)
+x0 = [0; 0; 0; 0; 0; 0];                        % Initial values of states (real)
+% x0 = [0.5; 0.5; deg2rad(2); 0; 0; 0];             % Initial values of states (real)
 n_dim = size(x0,1);                               % Size of state matrix in process model
 
 y0_meas = x0(1:3);                                % Initial values of measurements
-m_dim = size(y0_meas,1);                          % Size of output vector in process model
+m_dim = size(y0_meas,1);                           % Size of output vector in process model
 
 r_dim = 3;                                        % Sice of input vector
-
-u_prev = zeros(r_dim,1);                          % Previous input vector. Needed for first iteration
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Measurement noise %%%
@@ -96,7 +94,7 @@ u_prev = zeros(r_dim,1);                          % Previous input vector. Neede
 use_noise_in_measurements = false;
 
 measurement_noise_mean = [0; 0; 0];
-measurement_noise_std = [0.1; 0.1; deg2rad(0.1)];
+measurement_noise_std = [0.1; 0.1; deg2rad(0.2)];
 
 %%%%%%%%%%%%%%%%%%%%%%%
 %%% External forces %%%

@@ -7,9 +7,9 @@ clear, clc, close all;
 addpath("Plots\");
 addpath("..\..\Tools\");
 
-% Load configuration data
-run 'Scenarios\Delta_u\supply_scenario_mpc_r_const_with_disturbance';
-% run 'Scenarios\Delta_u\supply_scenario_mpc_r_const_without_disturbance';
+% Load configuration data'
+run 'Scenarios\du_formulation\supply_scenario_mpc_r_const_without_disturbance';
+% run 'Scenarios\du_formulation\supply_scenario_mpc_r_const_with_disturbance';
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by T.I.
@@ -202,5 +202,6 @@ if (store_workspace)
     if (not(isfolder("Workspace")))
         mkdir("Workspace");
     end
-    save("Workspace/" + workspace_file_name);
+    save("Workspace/" + workspace_file_name, "x_array", "t_array", "u_array", "setpoint", "K_array", "wind_abs", "wind_beta", "wind_force_array", ...
+        "current_force", "wave_force", "x_est_array");
 end

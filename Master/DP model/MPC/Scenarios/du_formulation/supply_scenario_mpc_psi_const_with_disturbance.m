@@ -13,11 +13,11 @@ N = ceil(T/dt);     % Number of sample steps
 integration_method = IntegrationMethod.Runge_Kutta_Fourth_Order;
 
 % Output files
-folder = "Results/mpc_const_r_du_no_dist";                        % Name of folder to store output files
-file_prefix = "mpc_const_r_du_no_dist";                           % Prefix of file names
-workspace_file_name = "mpc_const_r_du_without_dist.mat";          % Name of .mat file
+folder = "Results/mpc_const_psi_du_with_dist";           % Name of folder to store output files
+file_prefix = "mpc_const_psi_du_with_dist_";             % Prefix of file names
+workspace_file_name = "mpc_const_psi_du_with_dist.mat";  % Name of .mat file
 
-store_workspace = true;                                           % Flag to indicate whether to save workspace to mat file
+store_workspace = true;                                  % Flag to indicate whether to save workspace to .mat file
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% MPC control parameters %%%
@@ -30,7 +30,6 @@ Q = diag([1e8, 1e8, 5e8]);           % Error weighting matrix
 P = diag([1e-4, 1e-4, 1e-6]);        % Input weighting matrix
 
 % Quadratic programming options
-% options = optimoptions('quadprog', 'Algorithm', 'interior-point-convex', 'display', 'off');
 options = optimoptions('quadprog', 'display', 'off');
 
 % Force and momentum limitations
@@ -102,8 +101,8 @@ measurement_noise_std = [0.1; 0.1; deg2rad(0.1)];
 %%%%%%%%%%%%%%%%%%%%%%%
 %%% External forces %%%
 %%%%%%%%%%%%%%%%%%%%%%%
-use_current_force = false;
-use_wave_force = false;
-use_wind_force = false;
+use_current_force = true;
+use_wave_force = true;
+use_wind_force = true;
 
 run 'common_external_disturbances.m';

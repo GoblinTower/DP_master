@@ -1,4 +1,4 @@
-function [A_lin, B_lin, C_lin] = body_model_discrete_matrices(M, D, dt, use_fe)
+function [A_lin, B_lin, C_lin] = body_model_discrete_matrices_using_psi(M, D, psi, dt, use_fe)
 % Function calculates the discrete matrices for the dp model
 % based on the book "Handbook of Marine Craft Hydrodynamics and
 % Motion Control, Second Edition" by Thor Inge Fossen.
@@ -15,10 +15,13 @@ function [A_lin, B_lin, C_lin] = body_model_discrete_matrices(M, D, dt, use_fe)
 % C_lin              : Discrete linear output matrix
 %
 
+% Rotation matrix
+rotation = rotation_matrix(psi);
+
 % Transition matrix
 Ac = [
         zeros(3,3), eye(3,3), zeros(3,3);
-        zeros(3,3), -inv(M)*D, inv(M);
+        zeros(3,3), -inv(M)*D, inv(M)*rotation';
         zeros(3,3), zeros(3,3), zeros(3,3)
      ];
 

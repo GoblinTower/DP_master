@@ -6,7 +6,8 @@ addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data
-run 'Scenarios\supply_scenario_mpc_psi_const';
+run 'Scenarios\u_formulation\supply_scenario_mpc_psi_const_without_disturbance';
+% run 'Scenarios\u_formulation\supply_scenario_mpc_psi_const_with_disturbance';
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by T.I.
@@ -189,3 +190,14 @@ end
 
 % Plot data
 plot_supply_linear_mpc_psi_constant(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true, folder, file_prefix);
+
+% Store workspace
+if (store_workspace)
+    % Create folder if it does not exists
+    if (not(isfolder("Workspace")))
+        mkdir("Workspace");
+    end
+    save("Workspace/" + workspace_file_name, "x_array", "t_array", "u_array", "setpoint", "K_array", "wind_abs", "wind_beta", "wind_force_array", ...
+        "current_force", "wave_force", "x_est_array");
+end
+

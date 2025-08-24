@@ -1,6 +1,6 @@
 % Implementation of MPC strategy to maintain supply boat position and
 % heading. This script assumes the heading rate of change remains constant
-% during the prediction horizon of the MPC. 
+% during the prediction horizon of the MPC.
 
 dt = 1.0;           % Timestep used in integration
 
@@ -13,11 +13,11 @@ N = ceil(T/dt);     % Number of sample steps
 integration_method = IntegrationMethod.Runge_Kutta_Fourth_Order;
 
 % Output files
-folder = "Results/mpc_recalculate_setpoint_du_with_dist";                   % Name of folder to store output files
-file_prefix = "mpc_recalculate_setpoint_du_with_dist";                      % Prefix of file names
-workspace_file_name = "mpc_recalculate_setpoint_du_with_dist.mat";          % Name of .mat file
+folder = "Results/mpc_const_psi_u_without_dist";                  % Name of folder to store output files
+file_prefix = "mpc_const_psi_u_without_dist_";                    % Prefix of file names
+workspace_file_name = "mpc_const_psi_u_without_dist.mat";         % Name of .mat file
 
-store_workspace = true;                                                     % Flag to indicate whether to save workspace to mat file
+store_workspace = true;                                           % Flag to indicate whether to save workspace to mat file
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% MPC control parameters %%%
@@ -84,8 +84,6 @@ y0_meas = x0(1:3);                                % Initial values of measuremen
 m_dim = size(y0_meas,1);                          % Size of output vector in process model
 
 r_dim = 3;                                        % Sice of input vector
-
-u_prev = zeros(r_dim,1);                          % Previous input vector. Needed for first iteration
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Measurement noise %%%
