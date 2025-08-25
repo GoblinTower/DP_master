@@ -25,13 +25,14 @@ function plot_lq_control_tracking(t, x, x_est, K, u, wind_abs, wind_beta, wind_f
     xlabel('t [s]');
     ylabel('r [rad/s]');
     
+    length_time = min(size(t,2), size(setpoint,2));
     %%%%%%%%%%%%%%%%%%%%%%%
     %%% Position in NED %%%
     %%%%%%%%%%%%%%%%%%%%%%%
     subplot(2,3,4);
     hold on
     plot(t, x(1,:));
-    plot(t, setpoint(1,:));
+    plot(t(1,1:length_time), setpoint(1,1:length_time));
     grid();
     title('Position x');
     xlabel('t [s]');
@@ -42,7 +43,7 @@ function plot_lq_control_tracking(t, x, x_est, K, u, wind_abs, wind_beta, wind_f
     subplot(2,3,5);
     hold on
     plot(t, x(2,:));
-    plot(t, setpoint(2,:));
+    plot(t(1:length_time), setpoint(2,1:length_time));
     grid();
     title('Position y');
     xlabel('t [s]');
@@ -53,7 +54,7 @@ function plot_lq_control_tracking(t, x, x_est, K, u, wind_abs, wind_beta, wind_f
     subplot(2,3,6);
     hold on
     plot(t, rad2deg(x(3,:)));
-    plot(t, rad2deg(setpoint(3,:)));
+    plot(t(1:length_time), rad2deg(setpoint(3,1:length_time)));
     grid();
     title('Yaw');
     xlabel('t [s]');

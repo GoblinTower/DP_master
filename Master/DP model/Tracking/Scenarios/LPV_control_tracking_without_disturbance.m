@@ -1,9 +1,10 @@
-% Configuration script: LQ optimal control using supply model
-% as process and DP model for control and filtering.
+% Implementation of MPC strategy to maintain supply boat position and
+% heading. This script assumes the heading rate of change remains constant
+% during the prediction horizon of the MPC.
 
 dt = 1.0;           % Timestep used in integration
 
-T = 500;            % End time
+T = 100;           % End time
 N = ceil(T/dt);     % Number of sample steps
 
 % Select integration method
@@ -12,17 +13,29 @@ N = ceil(T/dt);     % Number of sample steps
 integration_method = IntegrationMethod.Runge_Kutta_Fourth_Order;
 
 % Output files
-folder = "Results/lq_simple_tracking_without_dist";                    % Name of folder to store output files
-file_prefix = "lq_simple_tracking_without_dist_";                      % Prefix of file names
-workspace_file_name = 'lq_simple_tracking_without_dist_data.mat';      % Name of workspace file
+folder = "Results/lpv_trajectory_tracking_without_dist";                    % Name of folder to store output files
+file_prefix = "lpv_trajectory_tracking_without_dist_";                      % Prefix of file names
+workspace_file_name = "lpv_trajectory_tracking_without_dist_data.mat";      % Name of .mat file
 
-store_workspace = true;
+store_workspace = true;                                                     % Flag to indicate whether to save workspace to .mat file
 
-% LQ control parameters
-% Q = diag([1e9, 1e9, 1e12]);          % Error weighting matrix
-% P = 1.0*eye(3);                      % Input weighting matrix
-Q = diag([1e9, 1e9, 1e12]);          % Error weighting matrix
-P = 1.0*eye(3);                      % Input weighting matrix
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% MPC control parameters %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
+horizon_length = 20;                 % Prediction horizon length
+
+% Q = diag([5e8, 5e8, 5e8]);           % Error weighting matrix
+% P = diag([1e-4, 1e-4, 1e-6]);        % Input weighting matrix
+Q = diag([5e8, 5e8, 5e9]);           % Error weighting matrix
+P = diag([1, 1, 1e-4]);              % Input weighting matrix
+
+% Quadratic programming options
+options = optimoptions('quadprog', 'display', 'off');
+
+% Force and momentum limitations
+use_force_limitation = false;        % Apply force and momentum limitations
+max_inputs = [1e10; 1e10; 1e10];     % Max allowed force/momentum
+max_delta_u = [1e6; 1e6; 2e7];       % Max allowed change in force/momentum per timestep 
 
 %%%%%%%%%%%%%%%%%%%%%
 %%% Kalman filter %%%
@@ -47,11 +60,16 @@ animation_delay = 0.01;                           % Animation speed (in seconds)
 % x = [x, y, psi, u, v, r]
 % y = [x, y, psi]
 
-% x0 = [0; 0; 0; 0; 0; 0];                        % Initial values of states (real)
 x0 = [0; 0; 0; 0; 0; 0];                          % Initial values of states (real)
-n_dim = size(x0,1);                               % Size of state vector in process model
+% x0 = [0.5; 0.5; deg2rad(2); 0; 0; 0];           % Initial values of states (real)
+n_dim = size(x0,1);                               % Size of state matrix in process model
 
 y0_meas = x0(1:3);                                % Initial values of measurements
+m_dim = size(y0_meas,1);                          % Size of output vector in process model
+
+r_dim = 3;                                        % Sice of input vector
+
+u_prev = zeros(r_dim,1);                          % Previous input vector. Needed for first iteration
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Measurement noise %%%
@@ -77,4 +95,4 @@ run 'common_external_disturbances.m';
 %%% Trajectory %%%
 %%%%%%%%%%%%%%%%%%
 
-run 'common_path_following.m';
+run 'common_trajectory.m';

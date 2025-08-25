@@ -1,13 +1,13 @@
 % Script for implementing and testing model predictive controller (MPC)
-% Runs linear MPC with fixed state transition matrix for the entire horizon
+% using LPV (Linear Parameter Varying formulation).
 clear, clc, close all;
 
 addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data
-% run 'Scenarios\Recalculate_reference\supply_scenario_mpc_recalculate_setpoint_without_disturbance';
-run 'Scenarios\Recalculate_reference\supply_scenario_mpc_recalculate_setpoint_with_disturbance';
+run 'Scenarios\LPV_control_simple_tracking_without_disturbance';
+% run 'Scenarios\LPV_control_simple_tracking_with_disturbance';
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by T.I.
@@ -34,11 +34,14 @@ y_meas_array = zeros(3,N+1);            % Measurement array
 y_meas_array(:,1) = y0_meas;            % Storing initial value of measurement 
 
 u_array = zeros(r_dim,N);               % Control input array
+u_prev = zeros(r_dim,N);                % Previous control input
+
+setpoint = zeros(3,N);                  % Setpoint array
 
 % Initial values
-x = x0;                                 % Initial real state
+x = x0;                                 % Initial real state 
 x_est = x0_est;                         % Initial state estimate
-y_meas = y0_meas;                       % Initial measured value
+y_meas = y0_meas;                       % Initial measured value         
 
 t = 0;                                  % Current time
 
@@ -50,24 +53,16 @@ end
 % Store Kalman gain
 K_array = zeros(n_kal_dim*3,N);         % Storing Kalman filter gain
 
-
-% Get body model matrices
-% Independent of heading angle b is specified in body frame
-% [Ab, Bb, Cb] = body_model_discrete_matrices(M, D, dt, false);
+% Current waypoint index
+waypoint_index = 1;       % Waypoint index (for keeping track of current waypoint)
+ref = waypoints(:,1);     % The first waypoint is set as setpoint
 
 for i=1:N
 
     % Get vessel heading
     psi = y_meas(3);
 
-    % Get body model matrices
-    % Heading is needed for calculating b (defined in NED frame)
-    [Ab, Bb, Cb] = body_model_discrete_matrices_using_psi(M, D, psi, dt, false);
-
-    % Calculate discrete dp model matrices
     [A_lin, B_lin, F_lin, C_lin] = dp_fossen_discrete_matrices(M, D, psi, dt, false);
-
-    
 
     %%%%%%%%%%%%%%%%%%%%%%%
     %%% External forces %%%
@@ -94,12 +89,26 @@ for i=1:N
     % Known forces, tau
     tau = wind_force_array(:,i) + wave_force_array(:,i);
 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%% Calculate reference point r %%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Update reference point
+    % Change tracking when distance to next waypoint is less than some
+    % specified distance
+    if (norm(waypoints(1:2,waypoint_index) - x_est(1:2)) < distance_to_update_setpoint ...
+            && abs(waypoints(3,waypoint_index) - x_est(3)) < angle_to_update_setpoint ...
+            && waypoint_index ~= last_waypoint_index)
+        waypoint_index = waypoint_index + 1;
+        ref = waypoints(:,waypoint_index);
+    end
+    setpoint(:,i) = ref;
+
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% Calculate control signal u %%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    ref = setpoint(:,i:(i+horizon_length-1));   % Setpoint vector for current prediction horizon
-    ref = ref(:);                               % Must be a column vector
-
+    reference = repmat(ref, 1, horizon_length);
+    reference = reference(:);
+               
     % Force and momentum limitations
     if (use_force_limitation)
         if (i==1)
@@ -113,37 +122,20 @@ for i=1:N
         bi = [];
     end
 
-    % Set position to zero at the start of the MPC calculation
-    x_body = [zeros(2,1); x_est(3:9)];
-
-    % Get position in north, east and yaw
-    x_inertial = x_est(1:3);
-
-    % Get difference between setpoint and current position for the entire
-    % prediction horizon
-    r_inertial_body = reshape(ref, 3, horizon_length) - repmat([x_inertial(1:2); 0], 1, horizon_length);
-
-    % Calculate the new references with respect to NED coordinate system
-    r_body = rot'*r_inertial_body;
-    r_body = r_body(:);                               % Must be a column vector
-
-    % Wind and wave force
-    tau = wind_force_array(:,i) + wave_force_array(:,i);
-                     
     % Solve quadratic optimization problem
-    [H, c, Ae, be] = calculate_mpc_delta_u_form_dist(P, Q, Ab, Bb, Cb, Bb, tau, x_body, u_prev, horizon_length, r_body);
+    [H, c, Ae, be] = calculate_lpv_mpc_delta_u_dist(P, Q, A_lin, B_lin, C_lin, F_lin, tau, x_est, u_prev, horizon_length, reference, dt, M, D);
 
     % Optimization solver
     z = quadprog(H, c, Ai, bi, Ae, be, [], [], z0, options);
-
+    
     % Store previous value for warm starting
-    z0 = z; 
+    z0 = z;
+
+    % Store array for use in next MPC run (LPV)
+    u_prev = reshape(z(1:r_dim*horizon_length), 3, []);
 
     % Get control signal
     u = z(1:r_dim);
-    
-    % Store control signal for future use
-    u_prev = u;
 
     %%%%%%%%%%%%%%%%%%%%
     %%% Update model %%%
@@ -207,7 +199,7 @@ for i=1:N
     disp(['Current time: ', num2str(t)]);
     disp(['Integrator term : ', 'b(1): ', num2str(x_est(7)), ' b(2): ', num2str(x_est(8)), ...
         ' b(3): ', num2str(x_est(9))]);
-
+    
     % Update animated positon plot
     if (animate_kalman_estimate)
         animate_kalman.UpdatePlot(t_array(i), x_est_array(1,i), x_est_array(2,i), x_est_array(3,i),...
@@ -220,7 +212,7 @@ for i=1:N
 end
 
 % Plot data
-plot_supply_linear_mpc_psi_constant(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true, folder, file_prefix);
+plot_lpv_simple_tracking(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, waypoints, true, folder, file_prefix);
 
 % Store workspace
 if (store_workspace)
@@ -229,5 +221,5 @@ if (store_workspace)
         mkdir("Workspace");
     end
     save("Workspace/" + workspace_file_name, "x_array", "t_array", "u_array", "setpoint", "K_array", "wind_abs", "wind_beta", "wind_force_array", ...
-        "current_force", "wave_force", "x_est_array");
+        "current_force", "wave_force", "x_est_array", "waypoints");
 end

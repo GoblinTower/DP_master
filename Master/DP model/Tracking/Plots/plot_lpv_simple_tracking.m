@@ -1,4 +1,4 @@
-function plot_nmpc_tracking(t, x, x_est, K, u, wind_abs, wind_beta, wind_force, current_force, wave_force, setpoint, save_plots, folder, file_prefix)
+function plot_lpv_simple_tracking(t, x, x_est, K, u, wind_abs, wind_beta, wind_force, current_force, wave_force, setpoint, waypoint, save_plots, folder, file_prefix)
     
     f1 = figure(1); % Plotting states
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -25,14 +25,14 @@ function plot_nmpc_tracking(t, x, x_est, K, u, wind_abs, wind_beta, wind_force, 
     xlabel('t [s]');
     ylabel('r [rad/s]');
     
-    length_time = size(t,2);
+    length_time = min(size(t,2), size(setpoint,2));
     %%%%%%%%%%%%%%%%%%%%%%%
     %%% Position in NED %%%
     %%%%%%%%%%%%%%%%%%%%%%%
     subplot(2,3,4);
     hold on
-    plot(t, x(1,1:length_time));
-    plot(t, setpoint(1,1:length_time));
+    plot(t(1:length_time), x(1,1:length_time));
+    plot(t(1:length_time), setpoint(1,1:length_time));
     grid();
     title('Position x');
     xlabel('t [s]');
@@ -42,8 +42,8 @@ function plot_nmpc_tracking(t, x, x_est, K, u, wind_abs, wind_beta, wind_force, 
 
     subplot(2,3,5);
     hold on
-    plot(t, x(2,1:length_time));
-    plot(t, setpoint(2,1:length_time));
+    plot(t(1:length_time), x(2,1:length_time));
+    plot(t(1:length_time), setpoint(2,1:length_time));
     grid();
     title('Position y');
     xlabel('t [s]');
@@ -53,8 +53,8 @@ function plot_nmpc_tracking(t, x, x_est, K, u, wind_abs, wind_beta, wind_force, 
     
     subplot(2,3,6);
     hold on
-    plot(t, rad2deg(x(3,1:length_time)));
-    plot(t, rad2deg(setpoint(3,1:length_time)));
+    plot(t(1:length_time), rad2deg(x(3,1:length_time)));
+    plot(t(1:length_time), rad2deg(setpoint(3,1:length_time)));
     grid();
     title('Yaw');
     xlabel('t [s]');
@@ -68,15 +68,15 @@ function plot_nmpc_tracking(t, x, x_est, K, u, wind_abs, wind_beta, wind_force, 
     %%% Path %%%
     %%%%%%%%%%%%
     hold on
-    plot(x(2,:), x(1,:));                                            % Actual position
-    plot(setpoint(2,1:length_time), setpoint(1,1:length_time));      % Trajectory
-    plot(x(2,1), x(1,1), 'go','MarkerSize', 10);                     % Start position
-    plot(x(2,end), x(1,end), 'ro','MarkerSize', 10);                 % End position
+    plot(x(2,:), x(1,:));                                          % Actual position
+    plot(waypoint(2,:), waypoint(1,:), 'kx','MarkerSize', 8);      % Waypoints
+    plot(x(2,1), x(1,1), 'go','MarkerSize', 10);                   % Start position
+    plot(x(2,end), x(1,end), 'ro','MarkerSize', 10);               % End position
     grid();
     title('Path in x-y plane');
     xlabel('East [m]');
     ylabel('North [m]');
-    legend({'Path', 'Setpoints' 'Start position', "End position"}, 'Location', 'Best');
+    legend({'Path', 'Waypoints', 'Start position', "End position"}, 'Location', 'Best');
 
     f3 = figure(3); % Plot depicting input signals
     length_time = size(u,2);

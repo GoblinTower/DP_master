@@ -1,12 +1,9 @@
 % Configuration script: LQ optimal control using supply model
 % as process and DP model for control and filtering.
 
-% Add seed (meaning of life)
-rng(42,"twister");
-
 dt = 1.0;           % Timestep used in integration
 
-T = 800;            % End time
+T = 500;            % End time
 N = ceil(T/dt);     % Number of sample steps
 
 % Select integration method
@@ -15,25 +12,17 @@ N = ceil(T/dt);     % Number of sample steps
 integration_method = IntegrationMethod.Runge_Kutta_Fourth_Order;
 
 % Output files
-folder = "Results/simple_tracking_lq_dist";        % Name of folder to store output files
-file_prefix = "lq_dist_simple_tracking_";          % Prefix of file names
+folder = "Results/lq_simple_tracking_with_dist";                    % Name of folder to store output files
+file_prefix = "lq_simple_tracking_with_dist_";                      % Prefix of file names
+workspace_file_name = 'lq_simple_tracking_with_dist_data.mat';      % Name of workspace file
+
+store_workspace = true;
 
 % LQ control parameters
-Q = diag([1e9, 1e9, 1e12]);          % State weighting matrix
+% Q = diag([1e9, 1e9, 1e12]);          % Error weighting matrix
+% P = 1.0*eye(3);                      % Input weighting matrix
+Q = diag([1e9, 1e9, 1e12]);          % Error weighting matrix
 P = 1.0*eye(3);                      % Input weighting matrix
-
-% Setpoints [North, East, Yaw]
-% setpoint = zeros(3,N+1);
-% for k=1:N+1
-%     time = k*dt;
-%     if (time < 100)
-%         setpoint(:,k) = [0; 0; 0];
-%     elseif (time < 400)
-%         setpoint(:,k) = [10; 5; deg2rad(30)];
-%     else
-%         setpoint(:,k) = [-5; -5; deg2rad(45)];
-%     end
-% end
 
 %%%%%%%%%%%%%%%%%%%%%
 %%% Kalman filter %%%
@@ -75,32 +64,6 @@ use_noise_in_measurements = false;
 measurement_noise_mean = [0; 0; 0];
 measurement_noise_std = [0.1; 0.1; deg2rad(0.1)];
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Waypoint following %%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%
-distance_to_update_setpoint = 5;
-angle_to_update_setpoint = deg2rad(2);
-
-waypoints = [20, 80, 100, 160, 200, 240, 300, 380, 400, 460; 
-             10, 60, 100, 60, 120, 180, 200, 300, 240, 260];
-
-waypoints = calculate_angles_waypoints(waypoints, x0(1:2));
-
-last_waypoint_index = size(waypoints, 2);
-
-show_path_plot = false;
-if (show_path_plot)
-    figure(1);
-    hold on;
-    plot(waypoints(2,:), waypoints(1,:), 'bo-');
-    title("waypoints");
-    xlabel("East");
-    ylabel("North");
-    legend({'Waypoints'}, 'Location', 'Best');
-    grid();
-    hold off;
-end
-
 %%%%%%%%%%%%%%%%%%%%%%%
 %%% External forces %%%
 %%%%%%%%%%%%%%%%%%%%%%%
@@ -108,55 +71,10 @@ use_current_force = true;
 use_wave_force = true;
 use_wind_force = true;
 
-% Current
-current_variance = [1e3; 1e3; 0];
-% current_variance = [0; 0; 0];
-current_start_values = [1e5; 2e5; 0];
+run 'common_external_disturbances.m';
 
-current_force = zeros(3,N);
-% Gaussian random walk
-if (use_current_force)
-    current_force(:,1) = current_start_values;
-    for j=2:N
-        current_force(:,j) = current_force(:,j-1) + normrnd(0, current_variance, 3, 1);
-    end
-end
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Waypoint following %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Wave
-wave_variance = [1e2; 1e2; 1e2];
-% wave_variance = [0; 0; 0];
-wave_start_values = [1e4; 3e4; 5e2];
-
-wave_force = zeros(3,N);
-% Gaussian random walk
-if (use_wave_force)
-    wave_force(:,1) = wave_start_values;
-    for j=2:N
-        wave_force(:,j) = wave_force(:,j-1) + normrnd(0, wave_variance, 3, 1);
-    end
-end
-
-% Wind parameters
-rho = 1.247;        % [kg/m^3] - This is air density at 10 degrees
-Af = 180.0;         % Frontal projected area 
-Al = 311.0;         % Lateral projected area
-L = 76.2;           % Length overall (total length from bow to stern)
-Cx = 0.7;           % Wind coefficient with respect to surge
-Cy = 0.825;         % Wind coefficient with respect to sway
-Cn = 0.125;         % Wind coefficient with respect to yaw
-
-% Estimation of beta (angle of attack) and wind velocity
-wind_variance = [0.1; 0.2]*dt;
-wind_start_values = [deg2rad(35); 10];
-
-wind = zeros(2,N);
-% Gaussian random walk
-if (use_wind_force)
-    wind(:,1) = [wind_start_values(1); wind_start_values(2)];
-    for j=2:N
-        wind(:,j) = wind(:,j-1) + normrnd(0, wind_variance, 2, 1);
-    end
-end
-
-wind_beta = smooth(wind(1,:));
-wind_abs = smooth(wind(2,:));
+run 'common_path_following.m';

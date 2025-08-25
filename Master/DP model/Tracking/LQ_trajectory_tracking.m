@@ -1,25 +1,21 @@
-% Script for implementing and testing model predictive controller (MPC)
-% Runs linear MPC with fixed state transition matrix for the entire horizon
+% Script implementing LQ optimal control for the supply model
 clear, clc, close all;
 
 addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data
-% run 'Scenarios\Recalculate_reference\supply_scenario_mpc_recalculate_setpoint_without_disturbance';
-run 'Scenarios\Recalculate_reference\supply_scenario_mpc_recalculate_setpoint_with_disturbance';
+run 'Scenarios\LQ_control_tracking_without_disturbance.m';
+% run 'Scenarios\LQ_control_tracking_with_disturbance.m';
 
 % Fetch M and D matrices
-% See Identification of dynamically positioned ship paper written by T.I.
-% Fossen et al (1995).
+% See Identification of dynamically positioned ship paper written by Thor
+% Inge Fossen et al (1995).
 [~, ~, M, D] = supply();
-
-% Initial guess for the MPC optimization problem
-z0 = zeros(horizon_length*(2*r_dim + n_kal_dim + 2*m_dim),1);
 
 % Preallocate arrays
 t_array = zeros(1,N+1);                 % Time array
-
+ 
 wind_force_array = zeros(3,N);          % Wind force array relative to BODY coordinate frame
 wave_force_array = zeros(3,N);          % Wave force array relative to BODY coordinate frame
 current_force_array = zeros(3,N);       % Current force array relative to BODY coordinate frame
@@ -33,12 +29,16 @@ x_est_array(:,1) = x0_est;              % Storing initial assumed value of state
 y_meas_array = zeros(3,N+1);            % Measurement array
 y_meas_array(:,1) = y0_meas;            % Storing initial value of measurement 
 
-u_array = zeros(r_dim,N);               % Control input array
+u_array = zeros(3,N);                   % Control input array
+
+u_prev = zeros(3,1);                    % Previous control signal
 
 % Initial values
-x = x0;                                 % Initial real state
+x_prev = zeros(n_dim,1);                % Previus state 
+y_prev = zeros(3,1);                    % previous output
+x = x0;                                 % Initial real state 
 x_est = x0_est;                         % Initial state estimate
-y_meas = y0_meas;                       % Initial measured value
+y_meas = y0_meas;                       % Initial measured value         
 
 t = 0;                                  % Current time
 
@@ -48,33 +48,38 @@ if (animate_kalman_estimate)
 end
 
 % Store Kalman gain
-K_array = zeros(n_kal_dim*3,N);         % Storing Kalman filter gain
-
-
-% Get body model matrices
-% Independent of heading angle b is specified in body frame
-% [Ab, Bb, Cb] = body_model_discrete_matrices(M, D, dt, false);
+K_array = zeros(n_kal_dim*3,N);   % Storing Kalman filter gain
 
 for i=1:N
 
     % Get vessel heading
     psi = y_meas(3);
-
-    % Get body model matrices
-    % Heading is needed for calculating b (defined in NED frame)
-    [Ab, Bb, Cb] = body_model_discrete_matrices_using_psi(M, D, psi, dt, false);
-
-    % Calculate discrete dp model matrices
-    [A_lin, B_lin, F_lin, C_lin] = dp_fossen_discrete_matrices(M, D, psi, dt, false);
-
     
+    % Calculate discrete supply model matrices
+    [A_lin, B_lin, C_lin] = supply_discrete_matrices(M, D, psi, dt, false);
 
-    %%%%%%%%%%%%%%%%%%%%%%%
-    %%% External forces %%%
-    %%%%%%%%%%%%%%%%%%%%%%%
+    % Calculate LQ gain on deviation form
+    [G, G1, G2, A_dev, B_dev, C_dev] = calculate_lq_deviation_gain(A_lin, B_lin, C_lin, Q, P);
+
+    % Control input using LQ
+    ref = setpoint(:,i);
+    if (run_kalman_filter)
+        % Use state from Kalman filter
+        u = u_prev + G1*(x_est(1:n_dim) - x_prev) + G2*(y_prev - ref);
+        x_prev = x_est(1:n_dim);
+    else
+        % Use real state (assumed known, perfect information)
+        u = u_prev + G1*(x - x_prev) + G2*(y_prev - ref);
+        x_prev = x;
+    end
+
+    % Store the values of state, measurements and input as old values for
+    % the next iteration of control calculations.
+    y_prev = y_meas;
+
     % Get wind forces and momentum
     % The actual wind forces will depend on the real ship position, hence
-    % the state variables from the 'real' process is used.
+    % we use the state variables from the 'real' process.
     wind_force = wind_force_calc(wind_abs(i), wind_beta(i), x(3), x(4), x(5), rho, Af, Al, L, Cx, Cy, Cn);
     if (use_wind_force)
         wind_force_array(:,i) = wind_force;
@@ -93,57 +98,6 @@ for i=1:N
 
     % Known forces, tau
     tau = wind_force_array(:,i) + wave_force_array(:,i);
-
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %%% Calculate control signal u %%%
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    ref = setpoint(:,i:(i+horizon_length-1));   % Setpoint vector for current prediction horizon
-    ref = ref(:);                               % Must be a column vector
-
-    % Force and momentum limitations
-    if (use_force_limitation)
-        if (i==1)
-            u_minus_1 = u_array(:,i);
-        else
-            u_minus_1 = u_array(:,i-1);
-        end
-        [Ai, bi] = calculate_force_inequality_matrix(horizon_length, u_minus_1, n_kal_dim, m_dim, r_dim, max_inputs, max_delta_u);
-    else
-        Ai = []; 
-        bi = [];
-    end
-
-    % Set position to zero at the start of the MPC calculation
-    x_body = [zeros(2,1); x_est(3:9)];
-
-    % Get position in north, east and yaw
-    x_inertial = x_est(1:3);
-
-    % Get difference between setpoint and current position for the entire
-    % prediction horizon
-    r_inertial_body = reshape(ref, 3, horizon_length) - repmat([x_inertial(1:2); 0], 1, horizon_length);
-
-    % Calculate the new references with respect to NED coordinate system
-    r_body = rot'*r_inertial_body;
-    r_body = r_body(:);                               % Must be a column vector
-
-    % Wind and wave force
-    tau = wind_force_array(:,i) + wave_force_array(:,i);
-                     
-    % Solve quadratic optimization problem
-    [H, c, Ae, be] = calculate_mpc_delta_u_form_dist(P, Q, Ab, Bb, Cb, Bb, tau, x_body, u_prev, horizon_length, r_body);
-
-    % Optimization solver
-    z = quadprog(H, c, Ai, bi, Ae, be, [], [], z0, options);
-
-    % Store previous value for warm starting
-    z0 = z; 
-
-    % Get control signal
-    u = z(1:r_dim);
-    
-    % Store control signal for future use
-    u_prev = u;
 
     %%%%%%%%%%%%%%%%%%%%
     %%% Update model %%%
@@ -175,6 +129,9 @@ for i=1:N
     %%%%%%%%%%%%%%%%%%%%%%%%%%
     if (run_kalman_filter)
 
+        % Calculate discrete dp model matrices
+        [A_lin, B_lin, F_lin, C_lin] = dp_fossen_discrete_matrices(M, D, psi, dt, false);
+
         % Get Kalman gain from inbuilt MATLAB function dlqe
         [K,~,~,~] = dlqe(A_lin, G_lin, C_lin, W, V);
 
@@ -191,11 +148,14 @@ for i=1:N
 
     else
         % Use state process value
-        x_est = [x; 0; 0; 0];
+        x_est(1:n_dim) = x;
     end
 
     % Update time
     t = t + dt;
+
+    % Update previous control signal
+    u_prev = u;
     
     % Store data
     t_array(i+1) = t;
@@ -220,7 +180,7 @@ for i=1:N
 end
 
 % Plot data
-plot_supply_linear_mpc_psi_constant(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true, folder, file_prefix);
+plot_lq_control_tracking(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true, folder, file_prefix);
 
 % Store workspace
 if (store_workspace)

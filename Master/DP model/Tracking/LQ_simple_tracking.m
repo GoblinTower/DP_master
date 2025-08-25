@@ -196,3 +196,13 @@ end
 
 % Plot data
 plot_lq_control_simple_tracking(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, waypoints, true, folder, file_prefix);
+
+% Store workspace
+if (store_workspace)
+    % Create folder if it does not exists
+    if (not(isfolder("Workspace")))
+        mkdir("Workspace");
+    end
+    save("Workspace/" + workspace_file_name, "x_array", "t_array", "u_array", "setpoint", "K_array", "wind_abs", "wind_beta", "wind_force_array", ...
+        "current_force", "wave_force", "x_est_array", "waypoints");
+end
