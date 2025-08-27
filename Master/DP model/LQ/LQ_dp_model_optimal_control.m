@@ -5,8 +5,8 @@ addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data
-run 'Scenarios\dp_model_scenario_LQ_control_without_disturbance.m';
-% run 'Scenarios\dp_model_scenario_LQ_control_with_disturbance.m';
+% run 'Scenarios\dp_model_scenario_LQ_control_without_disturbance.m';
+run 'Scenarios\dp_model_scenario_LQ_control_with_disturbance.m';
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by Thor
@@ -143,9 +143,6 @@ for i=1:N
 
         x_est = x_aposteriori;
 
-        % Output b term (should equal the current)
-        x_est(7:9)
-
         % Store data Kalman gain
         K_array(:,i) = K(:);
 
@@ -166,6 +163,11 @@ for i=1:N
     x_est_array(:,i+1) = x_est; 
     u_array(:,i) = u;
 
+    % Output data
+    disp(['Current time: ', num2str(t)]);
+    disp(['Integrator term : ', 'b(1): ', num2str(x_est(7)), ' b(2): ', num2str(x_est(8)), ...
+        ' b(3): ', num2str(x_est(9))]);
+
     % Update animated positon plot
     if (animate_kalman_estimate)
         animate_kalman.UpdatePlot(t_array(i), x_est_array(1,i), x_est_array(2,i), x_est_array(3,i),...
@@ -179,3 +181,12 @@ end
 
 % Plot data
 plot_dp_model_lq(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true, folder, file_prefix);
+
+% Store workspace
+if (store_workspace)
+    % Create folder if it does not exists
+    if (not(isfolder("Workspace")))
+        mkdir("Workspace");
+    end
+    save("Workspace/" + workspace_file_name);
+end

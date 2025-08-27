@@ -15,8 +15,11 @@ N = ceil(T/dt);     % Number of sample steps
 integration_method = IntegrationMethod.Runge_Kutta_Fourth_Order;
 
 % Output files
-folder = "Results/lq_dp_model_no_dist";          % Name of folder to store output files
-file_prefix = "lq_dp_model_no_dist_";            % Prefix of file names
+folder = "Results/lq_dp_model_no_dist";                % Name of folder to store output files
+file_prefix = "lq_dp_model_no_dist_";                  % Prefix of file names
+workspace_file_name = 'lq_dp_model_no_dist_data';      % Name of workspace file
+
+store_workspace = true;
 
 % LQ control parameters
 Q = diag([1e9, 1e9, 1e11]);          % State weighting matrix
@@ -28,10 +31,10 @@ for k=1:N+1
     time = k*dt;
     if (time < 100)
         setpoint(:,k) = [0; 0; 0];
-    elseif (time < 400)
-        setpoint(:,k) = [10; 5; deg2rad(30)];
+    elseif (time < 600)
+        setpoint(:,k) = [10; 5; deg2rad(26)];
     else
-        setpoint(:,k) = [-5; -5; deg2rad(45)];
+        setpoint(:,k) = [-5; -5; deg2rad(265)];
     end
 end
 
@@ -59,7 +62,7 @@ animation_delay = 0.01;                           % Animation speed (in seconds)
 % y = [x, y, psi]
 
 % x0 = [0; 0; 0; 0; 0; 0];                        % Initial values of states (real)
-x0 = [0.5; 0.5; deg2rad(2); 0; 0; 0];             % Initial values of states (real)
+x0 = [0; 0; 0; 0; 0; 0];                          % Initial values of states (real)
 n_dim = size(x0,1);                               % Size of state matrix in process model
 
 y0_meas = x0(1:3);                                % Initial values of measurements
