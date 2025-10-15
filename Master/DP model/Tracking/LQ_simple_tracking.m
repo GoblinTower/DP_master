@@ -1,12 +1,22 @@
 % Script implementing LQ optimal control for the supply model
-clear, clc, close all;
 
 addpath("Plots\");
 addpath("..\..\Tools\");
 
-% Load configuration data
-run 'Scenarios\LQ_control_simple_tracking_without_disturbance.m';
-% run 'Scenarios\LQ_control_simple_tracking_with_disturbance.m';
+if (exist('external_scenario', 'var'))
+    if (run_with_disturbance)
+        run 'Scenarios\LQ_control_simple_tracking_with_disturbance';
+    else
+        run 'Scenarios\LQ_control_simple_tracking_without_disturbance';
+    end
+else
+    % This section represents code used when running this script directly'
+    clear, clc, close all;
+
+    % Load configuration data
+    % run 'Scenarios\LQ_control_simple_tracking_without_disturbance';
+    run 'Scenarios\LQ_control_simple_tracking_with_disturbance';
+end
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by Thor
@@ -44,9 +54,11 @@ y_meas = y0_meas;                       % Initial measured value
 
 t = 0;                                  % Current time
 
-% Create Kalman animation
-if (animate_kalman_estimate)
-    animate_kalman = AnimateKalman();
+if (~exist('external_scenario', 'var'))
+    % Create Kalman animation
+    if (animate_kalman_estimate)
+        animate_kalman = AnimateKalman();
+    end
 end
 
 % Store Kalman gain
@@ -178,24 +190,27 @@ for i=1:N
     x_est_array(:,i+1) = x_est; 
     u_array(:,i) = u;
 
-    % Output data
-    disp(['Current time: ', num2str(t)]);
-    disp(['Integrator term : ', 'b(1): ', num2str(x_est(7)), ' b(2): ', num2str(x_est(8)), ...
-        ' b(3): ', num2str(x_est(9))]);
-
-    % Update animated positon plot
-    if (animate_kalman_estimate)
-        animate_kalman.UpdatePlot(t_array(i), x_est_array(1,i), x_est_array(2,i), x_est_array(3,i),...
-            y_meas_array(1,i), y_meas_array(2,i), y_meas_array(3,i),...
-            setpoint(1,i), setpoint(2,i), setpoint(3,i));
-        
-        pause(animation_delay);
+    if (~exist('external_scenario', 'var'))
+        % Output data
+        disp(['Current time: ', num2str(t)]);
+        disp(['Integrator term : ', 'b(1): ', num2str(x_est(7)), ' b(2): ', num2str(x_est(8)), ...
+            ' b(3): ', num2str(x_est(9))]);
+    
+        % Update animated positon plot
+        if (animate_kalman_estimate)
+            animate_kalman.UpdatePlot(t_array(i), x_est_array(1,i), x_est_array(2,i), x_est_array(3,i),...
+                y_meas_array(1,i), y_meas_array(2,i), y_meas_array(3,i),...
+                setpoint(1,i), setpoint(2,i), setpoint(3,i));
+            
+            pause(animation_delay);
+        end
     end
-
 end
 
-% Plot data
-plot_lq_control_simple_tracking(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, waypoints, true, folder, file_prefix);
+if (~exist('external_scenario', 'var'))
+    % Plot data
+    plot_lq_control_simple_tracking(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, waypoints, true, folder, file_prefix);
+end
 
 % Store workspace
 if (store_workspace)
