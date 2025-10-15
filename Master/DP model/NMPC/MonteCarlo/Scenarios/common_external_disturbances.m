@@ -1,7 +1,7 @@
 % File containing the external disturbances common to all simulation runs
 
 % Add seed (to ensure same disturbances at every run)
-rng(25,"twister");
+rng(rand_seed, "twister");
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% External disturbances %%%
@@ -45,8 +45,7 @@ Cy = 0.825;         % Wind coefficient with respect to sway
 Cn = 0.125;         % Wind coefficient with respect to yaw
 
 % Estimation of beta (angle of attack) and wind velocity
-wind_variance = [0.1; 0.2]*dt;
-% wind_variance = [0.0; 0.0]*dt;
+wind_variance = [0.1; 0.2];
 wind_start_values = [deg2rad(35); 10];
 
 wind = zeros(2,N);

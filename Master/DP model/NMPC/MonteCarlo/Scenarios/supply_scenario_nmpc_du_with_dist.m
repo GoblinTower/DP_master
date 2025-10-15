@@ -4,7 +4,7 @@
 
 dt = 1.0;           % Timestep used in integration
 
-T = 800;            % End time
+T = 1000;           % End time
 N = ceil(T/dt);     % Number of sample steps
 
 % Select integration method
@@ -42,22 +42,6 @@ options = optimoptions('fmincon', 'display', 'off');
 
 % Initial guess of control signal for non-linear optimization algorithm
 u0 = zeros(3,horizon_length);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Setpoints [North, East, Yaw] %%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-setpoint = zeros(3, N + horizon_length - 1);
-n_setpoint = size(setpoint, 2);
-for k=1:n_setpoint
-    time = k*dt;
-    if (time < 100)
-        setpoint(:,k) = [0; 0; 0];
-    elseif (time < 500)
-        setpoint(:,k) = [-5; 10; deg2rad(-26)];
-    else
-        setpoint(:,k) = [5; -5; deg2rad(135)];
-    end
-end
 
 %%%%%%%%%%%%%%%%%%%%%
 %%% Kalman filter %%%
@@ -108,3 +92,9 @@ use_wave_force = true;
 use_wind_force = true;
 
 run 'common_external_disturbances.m';
+
+%%%%%%%%%%%%%%%%%
+%%% Setpoints %%%
+%%%%%%%%%%%%%%%%%
+
+run 'common_setpoint.m';

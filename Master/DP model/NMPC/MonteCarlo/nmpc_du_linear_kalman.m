@@ -1,17 +1,18 @@
 % Nonlinear MPC applied to supply model.
 % Two models can be used in the model based comparison in MPC:
-% DP model by Fossen and reduced DP model (without the error term, b).
-% Here the complete model of Fossen is used for control.
 % This script uses a linear  Kalman filter (assuming vessel heading is known).
 % It is assumed that ship is exposed to external forces.
-clear, clc, close all;
+addpath("..\Plots\");
+addpath("..\..\..\Tools\");
 
-addpath("Plots\");
-addpath("..\..\Tools\");
-
-% Load configuration data
-% run 'Scenarios\supply_scenario_nmpc_without_dist';
-run 'Scenarios\supply_scenario_nmpc_with_dist';
+if (exist('external_scenario', 'var'))
+    run 'Scenarios\supply_scenario_nmpc_du_with_dist.m';
+else
+    clear, clc, close all;
+    % Load configuration data
+    % run '..\Scenarios\supply_scenario_nmpc_du_without_dist.m';
+    run '..\Scenarios\supply_scenario_nmpc_du_with_dist.m';
+end
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by Thor
@@ -43,9 +44,11 @@ y_meas = y0_meas;                       % Initial measured value
 
 t = 0;                                  % Current time
 
-% Create Kalman animation
-if (animate_kalman_estimate)
-    animate_kalman = AnimateKalman();
+if (~exist('external_scenario', 'var'))
+    % Create Kalman animation
+    if (animate_kalman_estimate)
+        animate_kalman = AnimateKalman();
+    end
 end
 
 % Store Kalman gain
@@ -86,12 +89,12 @@ for i=1:N
     % Solve non-linear optimization problem
     if (run_kalman_filter)
         % Use state from Kalman filter
-        u_sol = fmincon(@(u) non_linear_objective_function(u, tau, ref, M, D, P, Q, x_est, horizon_length, dt, 1), u0, [], [], [], [], [], [], [], options);
+        u_sol = fmincon(@(u) non_linear_objective_du_function(u, tau, ref, M, D, P, Q, x_est, u0(:,1), horizon_length, dt, 1), u0, [], [], [], [], [], [], @(u) grouping(u, groups), options);
     else
         % Use real state (assumed known, perfect information)
         % b is unknown, and hence set to zero
         x_extended = [x; 0; 0; 0];
-        u_sol = fmincon(@(u) non_linear_objective_function(u, tau, ref, M, D, P, Q, x_extended, horizon_length, dt, 1), u0, [], [], [], [], [], [], [], options);
+        u_sol = fmincon(@(u) non_linear_objective_du_function(u, tau, ref, M, D, P, Q, x_extended, u0(:,1), horizon_length, dt, 1), u0, [], [], [], [], [], [], @(u) grouping(u, groups), options);
     end
 
     % Store old value of optimal control input for initial guess in next
@@ -155,22 +158,36 @@ for i=1:N
     x_est_array(:,i+1) = x_est;
     y_meas_array(:,i+1) = y_meas;
     u_array(:,i) = u;
-
-    % Output data
-    disp(['Current time: ', num2str(t)]);
-    disp(['Integrator term : ', 'b(1): ', num2str(x_est(7)), ' b(2): ', num2str(x_est(8)), ...
-        ' b(3): ', num2str(x_est(9))]);
-
-    % Update animated positon plot
-    if (animate_kalman_estimate)
-        animate_kalman.UpdatePlot(t_array(i), x_est_array(1,i), x_est_array(2,i), x_est_array(3,i),...
-            y_meas_array(1,i), y_meas_array(2,i), y_meas_array(3,i),...
-            setpoint(1,i), setpoint(2,i), setpoint(3,i));
-        
-        pause(animation_delay);
-    end
     
+    if (~exist('external_scenario', 'var'))
+        % Output data
+        disp(['Current time: ', num2str(t)]);
+        disp(['Integrator term : ', 'b(1): ', num2str(x_est(7)), ' b(2): ', num2str(x_est(8)), ...
+            ' b(3): ', num2str(x_est(9))]);
+        disp(['Current force: ', 'North: ', num2str(current_force(1,i)), ' East: ', num2str(current_force(2,i)), ...
+            ' Yaw: ', num2str(current_force(3,i))]);
+    
+        % Update animated positon plot
+        if (animate_kalman_estimate)
+            animate_kalman.UpdatePlot(t_array(i), x_est_array(1,i), x_est_array(2,i), x_est_array(3,i),...
+                y_meas_array(1,i), y_meas_array(2,i), y_meas_array(3,i),...
+                setpoint(1,i), setpoint(2,i), setpoint(3,i));
+            
+            pause(animation_delay);
+        end
+    end
 end
 
-% Plot data
-plot_supply_nmpc(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true, folder, file_prefix);
+if (~exist('external_scenario', 'var'))
+    % Plot data
+    plot_supply_nmpc(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true, folder, file_prefix);
+end
+
+% Store workspace
+if (store_workspace)
+    % Create folder if it does not exists
+    if (not(isfolder("Workspace")))
+        mkdir("Workspace");
+    end
+    save(strcat("Workspace/", workspace_file_name, '_', num2str(mc_iteration)));
+end
