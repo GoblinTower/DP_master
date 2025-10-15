@@ -4,7 +4,7 @@
 
 dt = 1.0;           % Timestep used in integration
 
-T = 900;            % End time
+T = 1000;           % End time
 N = ceil(T/dt);     % Number of sample steps
 
 % Select integration method
@@ -13,9 +13,9 @@ N = ceil(T/dt);     % Number of sample steps
 integration_method = IntegrationMethod.Runge_Kutta_Fourth_Order;
 
 % Output files
-folder = "Results/mpc_const_r_du_with_dist";                      % Name of folder to store output files
-file_prefix = "mpc_const_r_du_with_dist_";                        % Prefix of file names
-workspace_file_name = "mpc_const_r_du_with_dist.mat";             % Name of .mat file
+folder = "Results/mpc_const_r_du_with_dist";                   % Name of folder to store output files
+file_prefix = "mpc_const_r_du_with_dist_";                     % Prefix of file names
+workspace_file_name = "mpc_const_r_du_with_dist.mat";          % Name of .mat file
 
 store_workspace = true;                                           % Flag to indicate whether to save workspace to mat file
 
@@ -30,6 +30,7 @@ Q = diag([1e8, 1e8, 5e8]);           % Error weighting matrix
 P = diag([1e-4, 1e-4, 1e-6]);        % Input weighting matrix
 
 % Quadratic programming options
+% options = optimoptions('quadprog', 'Algorithm', 'interior-point-convex', 'display', 'off');
 options = optimoptions('quadprog', 'display', 'off');
 
 % Force and momentum limitations
@@ -49,7 +50,7 @@ for k=1:setpoint_length
     elseif (time < 600)
         setpoint(:,k) = [10; 5; deg2rad(26)];
     else
-        setpoint(:,k) = [-5; -5; deg2rad(-225)];
+        setpoint(:,k) = [-5; -5; deg2rad(225)];
     end
 end
 

@@ -6,8 +6,8 @@ addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data
-run 'Scenarios\du_formulation\supply_scenario_mpc_psi_const_without_disturbance';
-% run 'Scenarios\du_formulation\supply_scenario_mpc_psi_const_with_disturbance';
+% run 'Scenarios\du_formulation\supply_scenario_mpc_psi_const_without_disturbance';
+run 'Scenarios\du_formulation\supply_scenario_mpc_psi_const_with_disturbance';
 % run 'Scenarios\du_formulation\supply_scenario_mpc_psi_const_with_disturbance_limit';
 
 

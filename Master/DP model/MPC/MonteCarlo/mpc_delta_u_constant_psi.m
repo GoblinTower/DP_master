@@ -1,14 +1,17 @@
 % Script for implementing and testing model predictive controller (MPC)
-% using LPV (Linear Parameter Varying formulation).
-clear, clc, close all;
+% Runs linear MPC with fixed state transition matrix for the entire horizon
+addpath("..\Plots\");
+addpath("..\..\..\Tools\");
 
-addpath("Plots\");
-addpath("..\..\Tools\");
-
-% Load configuration data
-% run 'Scenarios\du_formulation\supply_scenario_mpc_lpv_without_disturbance';
-run 'Scenarios\du_formulation\supply_scenario_mpc_lpv_with_disturbance';
-
+if (exist('external_scenario', 'var'))
+    run 'Scenarios\supply_scenario_mpc_psi_const_with_disturbance';
+else
+    clear, clc, close all;
+    % Load configuration data
+    run '..\Scenarios\du_formulation\supply_scenario_mpc_psi_const_without_disturbance';
+    % run '..\Scenarios\du_formulation\supply_scenario_mpc_psi_const_with_disturbance';
+    % run '..\Scenarios\du_formulation\supply_scenario_mpc_psi_const_with_disturbance_limit';
+end
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by T.I.
@@ -35,18 +38,19 @@ y_meas_array = zeros(3,N+1);            % Measurement array
 y_meas_array(:,1) = y0_meas;            % Storing initial value of measurement 
 
 u_array = zeros(r_dim,N);               % Control input array
-u_prev = zeros(r_dim,N);                % Previous control input
 
 % Initial values
-x = x0;                                 % Initial real state 
+x = x0;                                 % Initial real state
 x_est = x0_est;                         % Initial state estimate
-y_meas = y0_meas;                       % Initial measured value         
+y_meas = y0_meas;                       % Initial measured value
 
 t = 0;                                  % Current time
 
-% Create Kalman animation
-if (animate_kalman_estimate)
-    animate_kalman = AnimateKalman();
+if (~exist('external_scenario', 'var'))
+    % Create Kalman animation
+    if (animate_kalman_estimate)
+        animate_kalman = AnimateKalman();
+    end
 end
 
 % Store Kalman gain
@@ -57,6 +61,7 @@ for i=1:N
     % Get vessel heading
     psi = y_meas(3);
 
+    % Calculate discrete dp model matrices
     [A_lin, B_lin, F_lin, C_lin] = dp_fossen_discrete_matrices(M, D, psi, dt, false);
 
     %%%%%%%%%%%%%%%%%%%%%%%
@@ -87,9 +92,9 @@ for i=1:N
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% Calculate control signal u %%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    ref = setpoint(:,i:(i+horizon_length-1));
+    ref = setpoint(:,i:(i+horizon_length-1));   % Setpoint vector for current prediction horizon
     ref = ref(:);                               % Must be a column vector
-               
+
     % Force and momentum limitations
     if (use_force_limitation)
         if (i==1)
@@ -102,21 +107,21 @@ for i=1:N
         Ai = []; 
         bi = [];
     end
-
+                            
     % Solve quadratic optimization problem
-    [H, c, Ae, be] = calculate_lpv_mpc_delta_u_dist(P, Q, A_lin, B_lin, C_lin, F_lin, tau, x_est, u_prev, horizon_length, ref, dt, M, D);
+    [H, c, Ae, be] = calculate_mpc_delta_u_form_dist(P, Q, A_lin, B_lin, C_lin, F_lin, tau, x_est, u_prev, horizon_length, ref);
 
     % Optimization solver
     z = quadprog(H, c, Ai, bi, Ae, be, [], [], z0, options);
-    
-    % Store previous value for warm starting
-    z0 = z;
 
-    % Store array for use in next MPC run (LPV)
-    u_prev = reshape(z(1:r_dim*horizon_length), 3, []);
+    % Store previous value for warm starting
+    z0 = z; 
 
     % Get control signal
     u = z(1:r_dim);
+    
+    % Store control signal for future use
+    u_prev = u;
 
     %%%%%%%%%%%%%%%%%%%%
     %%% Update model %%%
@@ -176,24 +181,27 @@ for i=1:N
     x_est_array(:,i+1) = x_est; 
     u_array(:,i) = u;
 
-    % Output data
-    disp(['Current time: ', num2str(t)]);
-    disp(['Integrator term : ', 'b(1): ', num2str(x_est(7)), ' b(2): ', num2str(x_est(8)), ...
-        ' b(3): ', num2str(x_est(9))]);
-    
-    % Update animated positon plot
-    if (animate_kalman_estimate)
-        animate_kalman.UpdatePlot(t_array(i), x_est_array(1,i), x_est_array(2,i), x_est_array(3,i),...
-            y_meas_array(1,i), y_meas_array(2,i), y_meas_array(3,i),...
-            setpoint(1,i), setpoint(2,i), setpoint(3,i));
+    if (~exist('external_scenario', 'var'))
+        % Output data
+        disp(['Current time: ', num2str(t)]);
+        disp(['Integrator term : ', 'b(1): ', num2str(x_est(7)), ' b(2): ', num2str(x_est(8)), ...
+            ' b(3): ', num2str(x_est(9))]);
         
-        pause(animation_delay);
+        % Update animated positon plot
+        if (animate_kalman_estimate)
+            animate_kalman.UpdatePlot(t_array(i), x_est_array(1,i), x_est_array(2,i), x_est_array(3,i),...
+                y_meas_array(1,i), y_meas_array(2,i), y_meas_array(3,i),...
+                setpoint(1,i), setpoint(2,i), setpoint(3,i));
+            
+            pause(animation_delay);
+        end
     end
-
 end
 
-% Plot data
-plot_supply_lpv_mpc(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true, folder, file_prefix);
+if (~exist('external_scenario', 'var'))
+    % Plot data
+    plot_supply_linear_mpc_psi_constant(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true, folder, file_prefix);
+end
 
 % Store workspace
 if (store_workspace)
@@ -201,6 +209,6 @@ if (store_workspace)
     if (not(isfolder("Workspace")))
         mkdir("Workspace");
     end
-    save("Workspace/" + workspace_file_name, "x_array", "t_array", "u_array", "setpoint", "K_array", "wind_abs", "wind_beta", "wind_force_array", ...
+    save(strcat("Workspace/", workspace_file_name, '_', num2str(mc_iteration)), "x_array", "t_array", "u_array", "setpoint", "K_array", "wind_abs", "wind_beta", "wind_force_array", ...
         "current_force", "wave_force", "x_est_array");
 end

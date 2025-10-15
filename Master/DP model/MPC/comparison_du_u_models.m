@@ -33,8 +33,11 @@ else
     end
 end
  
-lmf = [mpc_const_psi, mpc_const_r, lpv, body];              % Shortcut for List of .Mat Files
-nos = {'Constant \psi', 'Constant r', 'LPV', 'Body' };      % Shortcut for Name Of Simulations
+% lmf = [mpc_const_psi, mpc_const_r, lpv, body];              % Shortcut for List of .Mat Files
+% nos = {'Constant \psi', 'Constant r', 'LPV', 'Body' };      % Shortcut for Name Of Simulations
+
+lmf = [mpc_const_psi, mpc_const_r, lpv];                    % Shortcut for List of .Mat Files
+nos = {'const. \psi', 'const. r', 'LPV'};                   % Shortcut for Name Of Simulations
 
 if (disturbance_included)
     storage_path = 'Workspace\Dist';                        % Path where plots are stored
@@ -44,4 +47,32 @@ end
 
 show_setpoints = true;                                      % Show setpoints in plot
 
-[iae, tv] = plot_data(lmf, nos, storage_path, show_setpoints);
+% [iae, tv] = plot_data(lmf, nos, storage_path, show_setpoints);
+
+show_setpoints = true;                                      % Show setpoints in plot
+
+plot_details.path_xlim = [-10,7];
+plot_details.path_ylim = [-10,12];
+
+plot_details.force_surge_exponent = 6;
+plot_details.force_sway_exponent = 6;
+plot_details.momentum_yaw_exponent = 8;
+
+plot_details.kalman_exponent = 5;
+
+plot_details.wind_surge_exponent = 4;
+plot_details.wind_sway_exponent = 4;
+plot_details.wind_momentum_exponent = 5;
+
+plot_details.current_north_exponent = 5;
+plot_details.current_east_exponent = 5;
+
+plot_details.wave_north_exponent = 4;
+plot_details.wave_east_exponent = 4;
+plot_details.wave_momentum_exponent = 3;
+
+show_current_estimate = false;
+model_number_environmental = 2;
+
+[iae, tv] = plot_data_extended(lmf, nos, show_setpoints, 20, storage_path, plot_details, ...
+    show_current_estimate, model_number_environmental);

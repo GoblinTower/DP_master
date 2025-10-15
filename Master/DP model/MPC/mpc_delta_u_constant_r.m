@@ -8,8 +8,8 @@ addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data'
-run 'Scenarios\du_formulation\supply_scenario_mpc_r_const_without_disturbance';
-% run 'Scenarios\du_formulation\supply_scenario_mpc_r_const_with_disturbance';
+% run 'Scenarios\du_formulation\supply_scenario_mpc_r_const_without_disturbance';
+run 'Scenarios\du_formulation\supply_scenario_mpc_r_const_with_disturbance';
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by T.I.

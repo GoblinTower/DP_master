@@ -54,10 +54,13 @@ c = zeros(z_dim, 1);
 % Related by Ae*z = be
 
 % First row
-Ae1u = -kron(eye(N), B);
+% 
 
 % Must recompute A for every timestep
+% So more efficient to preallocate arrays
 Ae1x = eye(N*n_dim);
+Ae1u = zeros(N*n_dim, N*r_dim);
+be1 = zeros(N*n_dim, 1);
 
 psi = x0(3);                        % Yaw position at current time
 r = x0(6);                          % Yaw rate at current time
@@ -67,15 +70,26 @@ for i=1:(N-1)
     % Update rotation matrix
     psi = psi + r*dt;               % Update yaw assuming constant yaw rate;
 
-    [A_mod, B_mod, ~, ~] = dp_fossen_discrete_matrices(M, D, psi, dt, false);
+    % Update matrices and vectors using the input matrix, B
+    Ae1u(((i-1)*n_dim+1):(i*n_dim),((i-1)*r_dim+1):(i*r_dim)) = -B;
+    if (i == 1)
+        be1(((i-1)*n_dim+1):(i*n_dim),1) = A*x0 + F*tau;
+    else
+        be1(((i-1)*n_dim+1):(i*n_dim),1) = F*tau;
+    end
+
+    [A_mod, B_mod, F_mod, ~] = dp_fossen_discrete_matrices(M, D, psi, dt, false);
+
+    B = B_mod;
+    F = F_mod;
 
     Ae1x((i*n_dim+1):((i+1)*n_dim),((i-1)*n_dim+1):(i*n_dim)) = -A_mod;
-
+ 
 end
 Ae1e = zeros(N*n_dim, N*m_dim);
 Ae1y = zeros(N*n_dim, N*m_dim);
 Ae1du = zeros(N*n_dim, N*r_dim);
-be1 = [A*x0 + F*tau; kron(ones(N-1,1), F*tau)];
+% be1 = [A*x0 + F*tau; kron(ones(N-1,1), F*tau)];
 
 % Second row
 Ae2u = zeros(N*m_dim, N*r_dim);

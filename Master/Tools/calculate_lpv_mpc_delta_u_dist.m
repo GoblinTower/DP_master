@@ -55,7 +55,10 @@ c = zeros(z_dim, 1);
 % Related by Ae*z = be
 
 % Must recompute A for every timestep
+% So more efficient to preallocate arrays
 Ae1x = eye(N*n_dim);
+Ae1u = zeros(N*n_dim, N*r_dim);
+be1 = zeros(N*n_dim, 1);
 
 % First row
 Ae1u = -kron(eye(N), B);
@@ -83,6 +86,14 @@ for i=1:(N-1)
     % Get yaw angle
     psi = x(3);
 
+    % Update matrices and vectors using the input matrix, B
+    Ae1u(((i-1)*n_dim+1):(i*n_dim),((i-1)*r_dim+1):(i*r_dim)) = -Bd;
+    if (i == 1)
+        be1(((i-1)*n_dim+1):(i*n_dim),1) = Ad*x0 + Fd*tau;
+    else
+        be1(((i-1)*n_dim+1):(i*n_dim),1) = Fd*tau;
+    end
+
     % Get discrete DP model matrices
     [Ad, Bd, Fd, ~] = dp_fossen_discrete_matrices(M, D, psi, dt, false);
 
@@ -92,7 +103,7 @@ end
 Ae1e = zeros(N*n_dim, N*m_dim);
 Ae1y = zeros(N*n_dim, N*m_dim);
 Ae1du = zeros(N*n_dim, N*r_dim);
-be1 = [A*x0 + F*tau; kron(ones(N-1,1), F*tau)];
+% be1 = [A*x0 + F*tau; kron(ones(N-1,1), F*tau)];
 
 %% Second row
 Ae2u = zeros(N*m_dim, N*r_dim);
