@@ -15,28 +15,15 @@ N = ceil(T/dt);     % Number of sample steps
 integration_method = IntegrationMethod.Runge_Kutta_Fourth_Order;
 
 % Output files
-folder = "Results/lq_dp_model_dist";                % Name of folder to store output files
-file_prefix = "lq_dp_model_dist_";                  % Prefix of file names
-workspace_file_name = 'lq_dp_model_dist_data';      % Name of workspace file
+folder = "Results/lq_dp_model_no_dist";                % Name of folder to store output files
+file_prefix = "lq_dp_model_no_dist_";                  % Prefix of file names
+workspace_file_name = 'lq_dp_model_no_dist_data';      % Name of workspace file
 
 store_workspace = true;
 
 % LQ control parameters
 Q = diag([1e9, 1e9, 1e11]);          % State weighting matrix
 P = 1.0*eye(3);                      % Input weighting matrix
-
-% Setpoints [North, East, Yaw]
-setpoint = zeros(3,N+1);
-for k=1:N+1
-    time = k*dt;
-    if (time < 100)
-        setpoint(:,k) = [0; 0; 0];
-    elseif (time < 600)
-        setpoint(:,k) = [10; 5; deg2rad(26)];
-    else
-        setpoint(:,k) = [-5; -5; deg2rad(225)];
-    end
-end
 
 %%%%%%%%%%%%%%%%%%%%%
 %%% Kalman filter %%%
@@ -47,7 +34,7 @@ W = diag([1e2, 1e2, 1e2, 1e2, 1e2, 1e2, 1e12, 1e12, 1e12]);   % Process noise
 V = 10*eye(3);                                                % Measurement noise
 
 x0_est = [0; 0; 0; 0; 0; 0; 0; 0; 0];             % Initial state estimate
-n_kal_dim = size(x0_est,1);                       % Number of states in Kalman filter
+n_kal_dim = size(x0_est,1);                       % Size of state matrix in Kalman filter
 G_lin = eye(n_kal_dim);                           % Process noise matrix
 
 x_aposteriori = x0_est;                           % Aposteriori state estimate
@@ -63,7 +50,7 @@ animation_delay = 0.01;                           % Animation speed (in seconds)
 
 % x0 = [0; 0; 0; 0; 0; 0];                        % Initial values of states (real)
 x0 = [0; 0; 0; 0; 0; 0];                          % Initial values of states (real)
-n_dim = size(x0,1);                               % Size of state vector in process model
+n_dim = size(x0,1);                               % Size of state matrix in process model
 
 y0_meas = x0(1:3);                                % Initial values of measurements
 
@@ -81,8 +68,14 @@ measurement_noise_std = [0.1; 0.1; deg2rad(0.1)];
 %%%%%%%%%%%%%%%%%%%%%%%
 %%% External forces %%%
 %%%%%%%%%%%%%%%%%%%%%%%
-use_current_force = true;
-use_wave_force = true;
-use_wind_force = true;
+use_current_force = false;
+use_wave_force = false;
+use_wind_force = false;
 
 run 'common_external_disturbances.m';
+
+%%%%%%%%%%%%%%%%%
+%%% Setpoints %%%
+%%%%%%%%%%%%%%%%%
+
+run 'common_setpoint.m';

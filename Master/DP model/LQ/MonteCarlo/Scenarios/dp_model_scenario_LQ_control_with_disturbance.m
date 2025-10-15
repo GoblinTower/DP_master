@@ -25,19 +25,6 @@ store_workspace = true;
 Q = diag([1e9, 1e9, 1e11]);          % State weighting matrix
 P = 1.0*eye(3);                      % Input weighting matrix
 
-% Setpoints [North, East, Yaw]
-setpoint = zeros(3,N+1);
-for k=1:N+1
-    time = k*dt;
-    if (time < 100)
-        setpoint(:,k) = [0; 0; 0];
-    elseif (time < 600)
-        setpoint(:,k) = [10; 5; deg2rad(26)];
-    else
-        setpoint(:,k) = [-5; -5; deg2rad(225)];
-    end
-end
-
 %%%%%%%%%%%%%%%%%%%%%
 %%% Kalman filter %%%
 %%%%%%%%%%%%%%%%%%%%%
@@ -86,3 +73,9 @@ use_wave_force = true;
 use_wind_force = true;
 
 run 'common_external_disturbances.m';
+
+%%%%%%%%%%%%%%%%%
+%%% Setpoints %%%
+%%%%%%%%%%%%%%%%%
+
+run 'common_setpoint.m';

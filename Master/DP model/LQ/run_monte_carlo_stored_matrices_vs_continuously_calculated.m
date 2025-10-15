@@ -1,7 +1,7 @@
 % Monte Carlo script for running GreenDP
 clear, clc, close all;
 
-number_of_iterations = 25;
+number_of_iterations = 100;
 
 external_scenario = 'compare_time';
 
