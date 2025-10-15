@@ -132,8 +132,8 @@ C2 = [
      ];
 
 % Minimum and maximum force per thruster
-fmin = -[1e8; 1e8; 1e10; 1e10];
-fmax = [1e8; 1e8; 1e10; 1e10];
+fmin = -[1e8; 1e5; 1e10; 1e10];
+fmax = [1e8; 1e5; 1e10; 1e10];
 
 % Beta (punishing large force values)
 beta = 1e0;

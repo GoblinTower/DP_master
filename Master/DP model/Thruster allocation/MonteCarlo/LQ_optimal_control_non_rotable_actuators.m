@@ -1,7 +1,7 @@
 % Script implementing LQ optimal control for the supply model
 
-addpath("Plots\");
-addpath("..\..\Tools\");
+addpath("..\Plots\");
+addpath("..\..\..\Tools\");
 
 if (exist('external_scenario', 'var'))
     if (run_one_tunnel)
@@ -236,5 +236,5 @@ if (store_workspace)
     if (not(isfolder("Workspace")))
         mkdir("Workspace");
     end
-    save("Workspace/" + workspace_file_name);
+    save(strcat("Workspace/", workspace_file_name, '_', num2str(mc_iteration)));
 end

@@ -1,19 +1,19 @@
 % Script implementing LQ optimal control for the supply model
 
-addpath("Plots\");
-addpath("..\..\Tools\");
+addpath("..\Plots\");
+addpath("..\..\..\Tools\");
 
 if (exist('external_scenario', 'var'))
     if (run_one_tunnel)
-        run 'Scenarios\Setup_1_tunnel_thruster\supply_scenario_LQ_control_non_rot_act';
+        run 'Scenarios\Setup_1_tunnel_thruster\supply_scenario_LQ_control_non_rot_act_limit';
     else
-        run 'Scenarios\Setup_2_tunnel_thrusters\supply_scenario_LQ_control_non_rot_act_2_tunnel';
+        run 'Scenarios\Setup_2_tunnel_thrusters\supply_scenario_LQ_control_non_rot_act_limit_2_tunnel';
     end
 else
     clear, clc, close all;
     % Load configuration data
-    % run 'Scenarios\Setup_1_tunnel_thruster\supply_scenario_LQ_control_non_rot_act';
-    run 'Scenarios\Setup_2_tunnel_thrusters\supply_scenario_LQ_control_non_rot_act_2_tunnel';
+    run 'Scenarios\Setup_1_tunnel_thruster\supply_scenario_LQ_control_non_rot_act_limit';
+    % run 'Scenarios\Setup_2_tunnel_thrusters\supply_scenario_LQ_control_non_rot_act_limit_2_tunnel';
 end
 
 % Fetch M and D matrices
@@ -72,6 +72,8 @@ if (~exist('external_scenario', 'var'))
     animate_combined = AnimateCombined(70, 8, thruster_positions, thruster_names);
 end
 
+slack_array = zeros(3,N);                         % Slack variables
+
 for i=1:N
 
     % Calculate vessel heading
@@ -102,10 +104,20 @@ for i=1:N
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% Calculate thruster distribution %%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    [u_thr, f] = unconstrained_nonrotatable_thruster_allocation(W_thr, T_conf, K_force, u);
-    rpm_array(:,i) = u_thr;
-    f_array(:,i) = f;
+    p = [u; fmin; fmax; beta];
+    
+    z = quadprog(Phi_quad, R_quad*p, A2, C2*p, A1, C1*p, [], [], [], options);
+    
+    % Get control forces
+    f = z(1:n_thrusters);
 
+    % Get slack variables
+    slack_array(:,i) = z(n_thrusters+1:n_thrusters+1+2);
+
+    % Store control input and individual thruster forces
+    rpm_array(:,i) = inv(K_force)*f;
+    f_array(:,i) = f;
+   
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% Calculate external disturbances %%% 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -209,18 +221,18 @@ for i=1:N
 
         % Environmental force in BODY coordinate system
         env_dist = wind_force_array(:,i) + wave_force_array(:,i) + current_force_array(:,i);
-        
+    
         % Update thruster plots
         animate_combined.UpdatePlot(t_array(i), x_array(3,i), f, thruster_angles, 1e4, ...
             u(1), u(2), u(3), env_dist(1), env_dist(2), env_dist(3), 1e4, 1e4, 1e5);
-                    
+    
         pause(animation_delay);
     end
 
 end
 
 if (~exist('external_scenario', 'var'))
-% Plot data
+    % Plot data
     if (n_thrusters == 3)
         plot_supply_lq_alloc_1tunnel(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, ...
             current_force, wave_force, rpm_array, f_array, setpoint, true, folder, file_prefix);
@@ -236,5 +248,5 @@ if (store_workspace)
     if (not(isfolder("Workspace")))
         mkdir("Workspace");
     end
-    save("Workspace/" + workspace_file_name);
+    save(strcat("Workspace/", workspace_file_name, '_', num2str(mc_iteration)));
 end

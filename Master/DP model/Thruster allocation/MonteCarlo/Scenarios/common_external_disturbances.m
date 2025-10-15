@@ -1,7 +1,7 @@
 % File containing the external disturbances common to all simulation runs
 
 % Add seed (to ensure same disturbances at every run)
-rng(78,"twister");
+rng(rand_seed, "twister");
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% External disturbances %%%

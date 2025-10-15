@@ -1,12 +1,16 @@
 % Script implementing LQ optimal control for the supply model
-clear, clc, close all;
 
 addpath("Plots\");
 addpath("..\..\Tools\");
 addpath("Scenarios\Azimuth\")
 
-% Load configuration data
-run 'Scenarios\Azimuth\supply_scenario_LQ_control_azimuth';
+if (exist('external_scenario', 'var'))
+   run 'Scenarios\Azimuth\supply_scenario_LQ_control_azimuth';
+else
+    clear, clc, close all;
+    % Load configuration data
+    run 'Scenarios\Azimuth\supply_scenario_LQ_control_azimuth';
+end
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by T.I.
@@ -42,17 +46,20 @@ y_meas = y0_meas;                       % Initial measured value
 
 t = 0;                                  % Current time
 
-% Create Kalman animation
-if (animate_kalman_estimate)
-    animate_kalman = AnimateKalman();
+if (~exist('external_scenario', 'var'))
+    % Create Kalman animation
+    if (animate_kalman_estimate)
+        animate_kalman = AnimateKalman();
+    end
+
+    % Thruster allocation
+    % animate_forces = AnimateForces(70, 8);
+    % animate_thrusters = AnimateThrusters(70, 8, thruster_positions, thruster_names);
+    animate_combined = AnimateCombined(70, 8, thruster_positions, thruster_names);
 end
 
-% Thruster allocation
-% animate_forces = AnimateForces(70, 8);
-% animate_thrusters = AnimateThrusters(70, 8, thruster_positions, thruster_names);
-animate_combined = AnimateCombined(70, 8, thruster_positions, thruster_names);
-
 rpm_array = zeros(n_thrusters,N);                 % RPM array
+thruster_angles = zeros(n_thrusters, N);          % Thruster angles
 f_array = zeros(n_thrusters,N);                   % Force from thrusters
 
 angle_array = zeros(n_azimuths,N);                % Azimuth angles
@@ -99,7 +106,6 @@ for i=1:N
     nonlin = @(z_) non_linear_constraints_alloc(z_, u, alpha0, fmin, fmax, ...
         alpha_min, alpha_max, alpha_diff_min, alpha_diff_max, @(a) thruster_configuration_matrix(a));
 
-    options = optimoptions('fmincon','Algorithm','sqp');
     % Optimization
     z_sol = fmincon(@(z) cost_function_thruster_alloc(z, alpha0, P_thr, W_thr, ...
         Q_thr, Omega_thr, rho, epsilon, @(a) thruster_configuration_matrix(a)), z0, [], [], [], [], [], [], nonlin, options); %, options);
@@ -116,6 +122,7 @@ for i=1:N
     % Store angles and thruster force, control input to thrusters and slack
     % variables
     angle_array(:,i) = alpha0;
+    thruster_angles = [0; 0; alpha0(1); alpha0(2)];
     f_array(:,i) = f;
     rpm_array(:,i) = inv(K_force)*f;
     slack_array(:,i) = z_sol(7:9);
@@ -208,32 +215,36 @@ for i=1:N
     x_est_array(:,i+1) = x_est;
     u_array(:,i) = u;
 
-    % Output data
-    disp(['Current time: ', num2str(t)]);
-    disp(['Integrator term : ', 'b(1): ', num2str(x_est(7)), ' b(2): ', num2str(x_est(8)), ...
-        ' b(3): ', num2str(x_est(9))]);
+    if (~exist('external_scenario', 'var'))
+        % Output data
+        disp(['Current time: ', num2str(t)]);
+        disp(['Integrator term : ', 'b(1): ', num2str(x_est(7)), ' b(2): ', num2str(x_est(8)), ...
+            ' b(3): ', num2str(x_est(9))]);
+    
+        % Update animated positon plot
+        if (animate_kalman_estimate)
+            animate_kalman.UpdatePlot(t_array(i), x_est_array(1,i), x_est_array(2,i), x_est_array(3,i),...
+                y_meas_array(1,i), y_meas_array(2,i), y_meas_array(3,i),...
+                setpoint(1,i), setpoint(2,i), setpoint(3,i));
+        end
 
-    % Update animated positon plot
-    if (animate_kalman_estimate)
-        animate_kalman.UpdatePlot(t_array(i), x_est_array(1,i), x_est_array(2,i), x_est_array(3,i),...
-            y_meas_array(1,i), y_meas_array(2,i), y_meas_array(3,i),...
-            setpoint(1,i), setpoint(2,i), setpoint(3,i));
-        
+        % Environmental force in BODY coordinate system
+        env_dist = wind_force_array(:,i) + wave_force_array(:,i) + current_force_array(:,i);
+    
+        % animate_forces.UpdatePlot(x_array(3,i), u(1), u(2), u(3), 1e4, 1e4, 1e5);
+        % animate_thrusters.UpdatePlot(t_array(i), x_array(3,i), f, [0, 0, alpha0(1), alpha0(2)], 1e4);
+        animate_combined.UpdatePlot(t_array(i), x_array(3,i), f, [0, 0, alpha0(1), alpha0(2)], 1e4, ...
+            u(1), u(2), u(3), env_dist(1), env_dist(2), env_dist(3), 1e4, 1e4, 1e5);
+
         pause(animation_delay);
     end
-
-    % Environmental force in BODY coordinate system
-    env_dist = wind_force_array(:,i) + wave_force_array(:,i) + current_force_array(:,i);
-
-    % animate_forces.UpdatePlot(x_array(3,i), u(1), u(2), u(3), 1e4, 1e4, 1e5);
-    % animate_thrusters.UpdatePlot(t_array(i), x_array(3,i), f, [0, 0, alpha0(1), alpha0(2)], 1e4);
-    animate_combined.UpdatePlot(t_array(i), x_array(3,i), f, [0, 0, alpha0(1), alpha0(2)], 1e4, ...
-        u(1), u(2), u(3), env_dist(1), env_dist(2), env_dist(3), 1e4, 1e4, 1e5);
 end
 
-% Plot data
-plot_supply_lq_alloc_azimuth(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, ...
-        current_force, wave_force, rpm_array, f_array, angle_array, slack_array, setpoint, true, folder, file_prefix);
+if (~exist('external_scenario', 'var'))
+    % Plot data
+    plot_supply_lq_alloc_azimuth(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, ...
+            current_force, wave_force, rpm_array, f_array, angle_array, slack_array, setpoint, true, folder, file_prefix);
+end
 
 % Store workspace
 if (store_workspace)

@@ -1,12 +1,20 @@
 % Script implementing LQ optimal control for the supply model
-clear, clc, close all;
 
 addpath("Plots\");
 addpath("..\..\Tools\");
 
-% Load configuration data
-run 'Scenarios\Setup_1_tunnel_thruster\supply_scenario_LQ_control_non_rot_act_limit';
-% run 'Scenarios\Setup_2_tunnel_thrusters\supply_scenario_LQ_control_non_rot_act_limit_2_tunnel';
+if (exist('external_scenario', 'var'))
+    if (run_one_tunnel)
+        run 'Scenarios\Setup_1_tunnel_thruster\supply_scenario_LQ_control_non_rot_act_limit';
+    else
+        run 'Scenarios\Setup_2_tunnel_thrusters\supply_scenario_LQ_control_non_rot_act_limit_2_tunnel';
+    end
+else
+    clear, clc, close all;
+    % Load configuration data
+    run 'Scenarios\Setup_1_tunnel_thruster\supply_scenario_LQ_control_non_rot_act_limit';
+    % run 'Scenarios\Setup_2_tunnel_thrusters\supply_scenario_LQ_control_non_rot_act_limit_2_tunnel';
+end
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by T.I.
@@ -42,9 +50,11 @@ y_meas = y0_meas;                       % Initial measured value
 
 t = 0;                                  % Current time
 
-% Create Kalman animation
-if (animate_kalman_estimate)
-    animate_kalman = AnimateKalman();
+if (~exist('external_scenario', 'var'))
+    % Create Kalman animation
+    if (animate_kalman_estimate)
+        animate_kalman = AnimateKalman();
+    end
 end
 
 % Number of thrusters
@@ -57,8 +67,10 @@ f_array = zeros(n_thrusters,N);         % Array of individual thruster forces
 % Store Kalman gain
 K_array = zeros(n_kal_dim*3,N);   % Storing Kalman filter gain
 
-% Thruster allocation plotting
-animate_combined = AnimateCombined(70, 8, thruster_positions, thruster_names);
+if (~exist('external_scenario', 'var'))
+    % Thruster allocation plotting
+    animate_combined = AnimateCombined(70, 8, thruster_positions, thruster_names);
+end
 
 for i=1:N
 
@@ -189,36 +201,40 @@ for i=1:N
     x_est_array(:,i+1) = x_est;
     u_array(:,i) = u;
 
-    % Output data
-    disp(['Current time: ', num2str(t)]);
-    disp(['Integrator term : ', 'b(1): ', num2str(x_est(7)), ' b(2): ', num2str(x_est(8)), ...
-        ' b(3): ', num2str(x_est(9))]);
+    if (~exist('external_scenario', 'var'))
+        % Output data
+        disp(['Current time: ', num2str(t)]);
+        disp(['Integrator term : ', 'b(1): ', num2str(x_est(7)), ' b(2): ', num2str(x_est(8)), ...
+            ' b(3): ', num2str(x_est(9))]);
+    
+        % Update animated positon plot
+        if (animate_kalman_estimate)
+            animate_kalman.UpdatePlot(t_array(i), x_est_array(1,i), x_est_array(2,i), x_est_array(3,i),...
+                y_meas_array(1,i), y_meas_array(2,i), y_meas_array(3,i),...
+                setpoint(1,i), setpoint(2,i), setpoint(3,i));
+        end
 
-    % Update animated positon plot
-    if (animate_kalman_estimate)
-        animate_kalman.UpdatePlot(t_array(i), x_est_array(1,i), x_est_array(2,i), x_est_array(3,i),...
-            y_meas_array(1,i), y_meas_array(2,i), y_meas_array(3,i),...
-            setpoint(1,i), setpoint(2,i), setpoint(3,i));
-        
+        % Environmental force in BODY coordinate system
+        env_dist = wind_force_array(:,i) + wave_force_array(:,i) + current_force_array(:,i);
+    
+        % Update thruster plots
+        animate_combined.UpdatePlot(t_array(i), x_array(3,i), f, thruster_angles, 1e4, ...
+            u(1), u(2), u(3), env_dist(1), env_dist(2), env_dist(3), 1e4, 1e4, 1e5);
+    
         pause(animation_delay);
     end
 
-    % Environmental force in BODY coordinate system
-    env_dist = wind_force_array(:,i) + wave_force_array(:,i) + current_force_array(:,i);
-
-    % Update thruster plots
-    animate_combined.UpdatePlot(t_array(i), x_array(3,i), f, thruster_angles, 1e4, ...
-        u(1), u(2), u(3), env_dist(1), env_dist(2), env_dist(3), 1e4, 1e4, 1e5);
-
 end
 
-% Plot data
-if (n_thrusters == 3)
-    plot_supply_lq_alloc_1tunnel(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, ...
-        current_force, wave_force, rpm_array, f_array, setpoint, true, folder, file_prefix);
-elseif (n_thrusters == 4)
-    plot_supply_lq_alloc_2tunnel(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, ...
-        current_force, wave_force, rpm_array, f_array, setpoint, true, folder, file_prefix);
+if (~exist('external_scenario', 'var'))
+    % Plot data
+    if (n_thrusters == 3)
+        plot_supply_lq_alloc_1tunnel(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, ...
+            current_force, wave_force, rpm_array, f_array, setpoint, true, folder, file_prefix);
+    elseif (n_thrusters == 4)
+        plot_supply_lq_alloc_2tunnel(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, ...
+            current_force, wave_force, rpm_array, f_array, setpoint, true, folder, file_prefix);
+    end
 end
 
 % Store workspace
