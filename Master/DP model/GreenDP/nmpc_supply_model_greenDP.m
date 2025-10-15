@@ -4,28 +4,41 @@
 % Here the complete model of Fossen is used for control.
 % This script uses a linear  Kalman filter (assuming vessel heading is known).
 % It is assumed that ship is exposed to external forces.
-clear, clc, close all;
 
 addpath("Plots\");
 addpath("..\..\Tools\");
 
-% Load configuration data
+if (exist('external_scenario', 'var'))
+    % Used when calling this from another script. Typically for the purpose
+    % of Monte Carlo simulation.
+    if (run_greenDP)
+        run 'Scenarios\Monte_Carlo_simulation\supply_scenario_nmpc_mc_green_dp_dist';
+    else
+        run 'Scenarios\Monte_Carlo_simulation\supply_scenario_nmpc_mc_no_green_dp_dist';
+    end
 
-% Circle scenario
-% run 'Scenarios\Circle\supply_scenario_nmpc_with_dist_no_green_dp_circle';
-% run 'Scenarios\Circle\supply_scenario_nmpc_with_dist_green_dp_circle';
-
-% Drift
-% run 'Scenarios\Drift\supply_scenario_nmpc_with_dist_no_green_dp_drift';
-% run 'Scenarios\Drift\supply_scenario_nmpc_with_dist_green_dp_drift';
-
-% Mild (small weather disturbances)
-% run 'Scenarios\Mild\supply_scenario_nmpc_with_dist_no_green_dp_mild';
-% run 'Scenarios\Mild\supply_scenario_nmpc_with_dist_green_dp_mild';
-
-% Oscillations
-run 'Scenarios\Oscillations\supply_scenario_nmpc_with_dist_no_green_dp_oscillations';
-% run 'Scenarios\Oscillations\supply_scenario_nmpc_with_dist_green_dp_oscillations';
+else
+    % This section represents code used when running this script directly
+    clear, clc, close all;
+    
+    % Load configuration data
+    
+    % Circle scenario
+    % run 'Scenarios\Circle\supply_scenario_nmpc_with_dist_no_green_dp_circle';
+    % run 'Scenarios\Circle\supply_scenario_nmpc_with_dist_green_dp_circle';
+    
+    % Drift
+    % run 'Scenarios\Drift\supply_scenario_nmpc_with_dist_no_green_dp_drift';
+    % run 'Scenarios\Drift\supply_scenario_nmpc_with_dist_green_dp_drift';
+    
+    % Mild (small weather disturbances)
+    % run 'Scenarios\Mild\supply_scenario_nmpc_with_dist_no_green_dp_mild';
+    % run 'Scenarios\Mild\supply_scenario_nmpc_with_dist_green_dp_mild';
+    
+    % Oscillations
+    run 'Scenarios\Oscillations\supply_scenario_nmpc_with_dist_no_green_dp_oscillations';
+    % run 'Scenarios\Oscillations\supply_scenario_nmpc_with_dist_green_dp_oscillations';
+end
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by Thor
@@ -57,16 +70,18 @@ y_meas = y0_meas;                       % Initial measured value
 
 t = 0;                                  % Current time
 
-% Create Kalman animation
-if (animate_kalman_estimate)
-    animate_kalman = AnimateKalman();
+if (~exist('external_scenario', 'var'))
+    % Create Kalman animation
+    if (animate_kalman_estimate)
+        animate_kalman = AnimateKalman();
+    end
 end
 
 % Store Kalman gain
 K_array = zeros(9*3,N);                 % Storing Kalman filter gain
 
 for i=1:N
-
+    i
     % Get vessel heading
     psi = y_meas(3);
 
@@ -178,24 +193,28 @@ for i=1:N
     y_meas_array(:,i+1) = y_meas;
     u_array(:,i) = u;
 
-    % Output data
-    disp(['Current time: ', num2str(t)]);
-    disp(['Integrator term : ', 'b(1): ', num2str(x_est(7)), ' b(2): ', num2str(x_est(8)), ...
-        ' b(3): ', num2str(x_est(9))]);
-
-    % Update animated positon plot
-    if (animate_kalman_estimate)
-        animate_kalman.UpdatePlot(t_array(i), x_est_array(1,i), x_est_array(2,i), x_est_array(3,i),...
-            y_meas_array(1,i), y_meas_array(2,i), y_meas_array(3,i),...
-            setpoint(1,i), setpoint(2,i), setpoint(3,i));
-        
-        pause(animation_delay);
+    if (~exist('external_scenario', 'var'))
+        % Output data
+        disp(['Current time: ', num2str(t)]);
+        disp(['Integrator term : ', 'b(1): ', num2str(x_est(7)), ' b(2): ', num2str(x_est(8)), ...
+            ' b(3): ', num2str(x_est(9))]);
+    
+        % Update animated positon plot
+        if (animate_kalman_estimate)
+            animate_kalman.UpdatePlot(t_array(i), x_est_array(1,i), x_est_array(2,i), x_est_array(3,i),...
+                y_meas_array(1,i), y_meas_array(2,i), y_meas_array(3,i),...
+                setpoint(1,i), setpoint(2,i), setpoint(3,i));
+            
+            pause(animation_delay);
+        end
     end
     
 end
 
-% Plot data
-plot_supply_nmpc_green_dp(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true, folder, file_prefix, R1, setpoint(1:2,1));
+if (~exist('external_scenario', 'var'))
+    % Plot data
+    plot_supply_nmpc_green_dp(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true, folder, file_prefix, R1, setpoint(1:2,1));
+end
 
 % Store workspace
 if (store_workspace)
