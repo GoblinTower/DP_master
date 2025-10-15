@@ -265,5 +265,9 @@ classdef AnimateCombined < handle
             hold off
 
         end
+
+        function delete(obj)
+            close ship_figure;
+        end
     end
 end

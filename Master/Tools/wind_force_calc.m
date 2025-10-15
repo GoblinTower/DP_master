@@ -31,7 +31,7 @@ function force = wind_force_calc(v_wind, beta, psi, u, v, rho, Af, Al, L, Cx, Cy
 
     % Calculate relative angle of attack with respect to bow
     gamma_rw = -atan2(v_rw, u_rw);
-
+    
     % Dynamic pressure of the apparent wind
     q = 0.5*rho*W_rw^2;
 

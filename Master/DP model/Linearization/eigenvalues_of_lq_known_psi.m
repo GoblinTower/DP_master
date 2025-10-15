@@ -49,3 +49,8 @@ c_sym_polynomial = (-lambda)*(-lambda)*(-lambda)*...
 
 fprintf('Charateristic equation symbolic:\n\n');
 disp(charpoly(c_sym_polynomial, lambda));
+
+% Double check that equation is valid
+char_verify_eigenvalues = subs(c_sym_polynomial, [m11, m12, m13, m21, m22, m23, m31, m32, m33], [m(1,1), m(1,2), m(1,3), m(2,1), m(2,2), m(2,3), m(3,1), m(3,2), m(3,3)]);
+solve(char_verify_eigenvalues);
+disp(double(solve(char_verify_eigenvalues)));
