@@ -3,7 +3,7 @@
 
 dt = 1.0;           % Timestep used in integration
 
-T = 500;            % End time
+T = 800;            % End time
 N = ceil(T/dt);     % Number of sample steps
 
 % Select integration method

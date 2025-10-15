@@ -27,5 +27,5 @@ yaw_setpoints = [atan2(diff_y, diff_x), atan2(diff_y(end), diff_x(end))];
 setpoint = [x_c; y_c; yaw_setpoints];
 
 % Add extended reference horizon (needed since NMPC predicts into the
-% future.
+% future).
 setpoint = [setpoint, repmat(setpoint(:, end), 1, horizon_length - 1)];
