@@ -1,8 +1,8 @@
 %%% Setup for ship (Balchen model) subjected to variable values in the control input
 %%% using PRBS (PseudoRandom Binary Sequence)
 
-dt = 0.1;           % Timestep used in integration
-T = 3000;           % End time
+dt = 0.3;           % Timestep used in integration
+T = 1800;           % End time
 N = ceil(T/dt);     % Number of sample steps
 
 n_si_dim = 3;       % Number of states in system identification

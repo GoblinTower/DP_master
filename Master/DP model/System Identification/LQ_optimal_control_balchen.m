@@ -1,17 +1,28 @@
-% Script implementing LQ optimal control for the supply model
-clear, clc, close all;
+% Script implementing LQ optimal control on model identified from simulated
+% results from Balchen model. Here the si method of
+% identification can be dsr, dsr_e and pem.
 
 addpath("Plots\");
 addpath("..\..\Tools\");
 
-% Load configuration data
-run 'Scenarios\balchen_scenario_LQ_control_without_disturbance';
-% run 'Scenarios\balchen_scenario_LQ_control_with_disturbance';
+if (exist('external_scenario', 'var'))
+    if (run_with_disturbance)
+        run 'Scenarios\balchen_scenario_LQ_control_with_disturbance';
+    else
+        run 'Scenarios\balchen_scenario_LQ_control_without_disturbance';
+    end
+else
+    % This section represents code used when running this script directly
+    clear, clc, close all;
+    % Load configuration data
+    % run 'Scenarios\balchen_scenario_LQ_control_without_disturbance';
+    run 'Scenarios\balchen_scenario_LQ_control_with_disturbance';
 
-% Type of sys_identification
-% sysid = 'dsr';
-% sysid = 'dsr_e';
-sysid = 'pem';
+    % Type of sys_identification
+    % sysid = 'dsr';
+    % sysid = 'dsr_e';
+    sysid = 'pem';
+end
 
 % Save file names and location
 folder = strcat('Results\Balchen\',sysid);
@@ -59,9 +70,11 @@ y_meas = y0_meas;                       % Initial measured value
 
 t = 0;                                  % Current time
 
-% Create Kalman animation
-if (animate_kalman_estimate)
-    animate_kalman = AnimateKalman();
+if (~exist('external_scenario', 'var'))
+    % Create Kalman animation
+    if (animate_kalman_estimate)
+        animate_kalman = AnimateKalman();
+    end
 end
 
 % Store Kalman gain
@@ -182,18 +195,20 @@ for i=1:N
     x_est_array(:,i+1) = x_est; 
     u_array(:,i) = u;
 
-    % Output data
-    disp(['Current time: ', num2str(t)]);
-    disp(['Integrator term : ', 'b(1): ', num2str(x_est(10)), ' b(2): ', num2str(x_est(11)), ...
-        ' b(3): ', num2str(x_est(12))]);
-
-    % Update animated positon plot
-    if (animate_kalman_estimate)
-        animate_kalman.UpdatePlot(t_array(i), x_est_array(1,i), x_est_array(2,i), x_est_array(3,i),...
-            y_meas_array(1,i), y_meas_array(2,i), y_meas_array(3,i),...
-            setpoint(1,i), setpoint(2,i), setpoint(3,i));
-        
-        pause(animation_delay);
+    if (~exist('external_scenario', 'var'))
+        % Output data
+        disp(['Current time: ', num2str(t)]);
+        disp(['Integrator term : ', 'b(1): ', num2str(x_est(10)), ' b(2): ', num2str(x_est(11)), ...
+            ' b(3): ', num2str(x_est(12))]);
+    
+        % Update animated positon plot
+        if (animate_kalman_estimate)
+            animate_kalman.UpdatePlot(t_array(i), x_est_array(1,i), x_est_array(2,i), x_est_array(3,i),...
+                y_meas_array(1,i), y_meas_array(2,i), y_meas_array(3,i),...
+                setpoint(1,i), setpoint(2,i), setpoint(3,i));
+            
+            pause(animation_delay);
+        end
     end
 
 end
@@ -211,5 +226,5 @@ if (store_workspace)
     if (not(isfolder("Workspace")))
         mkdir("Workspace");
     end
-    save("Workspace/" + workspace_file_name);
+    save("Workspace/" + workspace_file_name)
 end

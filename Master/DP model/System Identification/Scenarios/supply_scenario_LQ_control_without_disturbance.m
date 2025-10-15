@@ -3,9 +3,9 @@
 % Add seed (meaning og life)
 rng(42,"twister");
 
-dt = 0.5;           % Timestep used in integration
+dt = 0.3;           % Timestep used in integration
 
-T = 500;            % End time
+T = 1200;           % End time
 N = ceil(T/dt);     % Number of sample steps
 
 n_dim_control = 9;
@@ -29,7 +29,7 @@ for k=1:N
     time = k*dt;
     if (time < 100)
         setpoint(:,k) = [0; 0; 0];
-    elseif (time < 300)
+    elseif (time < 600)
         setpoint(:,k) = [10; 5; deg2rad(30)];
     else
         setpoint(:,k) = [-5; -5; deg2rad(45)];

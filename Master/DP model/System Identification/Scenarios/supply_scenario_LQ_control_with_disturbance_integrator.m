@@ -3,16 +3,16 @@
 % Add seed (meaning og life)
 rng(42,"twister");
 
-dt = 0.3;           % Timestep used in integration
+dt = 0.05;           % Timestep used in integration
 
-T = 1200;           % End time
+T = 1400;           % End time
 N = ceil(T/dt);     % Number of sample steps
 
 n_dim_control = 9;
 
 % Simulation type:
 % '_no_dist' or '_dist'
-simulation_type = '_no_dist';
+simulation_type = '_dist';
 
 % Select integration method
 % IntegrationMethod.Runge_Kutta_Fourth_Order
@@ -25,11 +25,11 @@ P = 1.0*eye(3);                      % Input weighting matrix
 
 % Setpoints [North, East, Yaw]
 setpoint = zeros(3,N+1);
-for k=1:N
+for k=1:N+1
     time = k*dt;
     if (time < 100)
         setpoint(:,k) = [0; 0; 0];
-    elseif (time < 600)
+    elseif (time < 800)
         setpoint(:,k) = [10; 5; deg2rad(30)];
     else
         setpoint(:,k) = [-5; -5; deg2rad(45)];
@@ -56,10 +56,10 @@ animation_delay = 0.01;                           % Animation speed (in seconds)
 %%%%%%%%%%%%%%%%%%%%%
 %%% Process model %%%
 %%%%%%%%%%%%%%%%%%%%%
-x0 = [0; 0; 0; 0; 0; 0; 0; 0];                    % Initial values of states (real)
-n_dim = size(x0,1);                               % Size of state matrix in process model
+x0 = [0; 0; 0; 0; 0; 0];                 % Initial values of states (real)
+n_dim = size(x0,1);                      % Size of state matrix in process model
 
-y0_meas = x0(1:3);                                % Initial values of measurements
+y0_meas = x0(1:3);                       % Initial values of measurements
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Measurement noise %%%
@@ -75,14 +75,13 @@ measurement_noise_std = [0.1; 0.1; deg2rad(0.1)];
 %%%%%%%%%%%%%%%%%%%%%%%
 %%% External forces %%%
 %%%%%%%%%%%%%%%%%%%%%%%
-use_current_force = false;
-use_wave_force = false;
-use_wind_force = false;
-use_speed_velocity = false;
+use_current_force = true;
+use_wave_force = true;
+use_wind_force = true;
 
 % Current
-current_variance = [1e3; 1e3; 0];
-% current_variance = [0; 0; 0];
+% current_variance = [1e3; 1e3; 0];
+current_variance = [0; 0; 0];
 current_start_values = [1e5; 2e5; 0];
 
 current_force = zeros(3,N);
@@ -91,34 +90,6 @@ if (use_current_force)
     current_force(:,1) = current_start_values;
     for j=2:N
         current_force(:,j) = current_force(:,j-1) + normrnd(0, current_variance, 3, 1);
-    end
-end
-
-% Current velocity
-current_velocity = zeros(2,N);
-current_vel_variance = [0.2; 0.2];
-current_vel_start_values = [1; 1];
-
-if (use_speed_velocity)
-    current_velocity(:,1) = current_vel_start_values;
-    for j=2:N
-        current_velocity(:,j) = current_velocity(:,j-1) + normrnd(0, current_vel_variance, 2, 1);
-        
-        % Speed not allowed faster than 3 m/s
-        if (current_velocity(1,j) > 3)
-            current_velocity(1,j) = 3;
-        end
-        if (current_velocity(2,j) > 3)
-            current_velocity(2,j) = 3;
-        end
-    
-        % Speed not allowed faster than -3 m/s
-        if (current_velocity(1,j) < -3)
-            current_velocity(1,j) = -3;
-        end
-        if (current_velocity(2,j) < -3)
-            current_velocity(2,j) = -3;
-        end
     end
 end
 

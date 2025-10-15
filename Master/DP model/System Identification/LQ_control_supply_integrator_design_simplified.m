@@ -1,5 +1,5 @@
 % Script implementing LQ optimal control on model identified from simulated
-% results from the OSV model by Fossen. Here the si method of
+% results from the suppy model by Fossen. Here the si method of
 % identification can be dsr, dsr_e and pem.
 
 addpath("Plots\");
@@ -7,38 +7,49 @@ addpath("..\..\Tools\");
 
 if (exist('external_scenario', 'var'))
     if (run_with_disturbance)
-        run 'Scenarios\osv_scenario_LQ_control_with_disturbance';
+        run 'Scenarios\supply_scenario_LQ_control_with_disturbance_integrator';
     else
-        run 'Scenarios\osv_scenario_LQ_control_without_disturbance';
+        run 'Scenarios\supply_scenario_LQ_control_without_disturbance_integrator';
     end
 else
     % This section represents code used when running this script directly
     clear, clc, close all;
     % Load configuration data
-    run 'Scenarios\osv_scenario_LQ_control_without_disturbance';
-    % run 'Scenarios\osv_scenario_LQ_control_with_disturbance';
+    % run 'Scenarios\supply_scenario_LQ_control_without_disturbance_integrator';
+    run 'Scenarios\supply_scenario_LQ_control_without_disturbance_integrator_identity';
 
     % Type of sys_identification
-    % sysid = 'dsr';
-    % sysid = 'dsr_e';
-    sysid = 'pem';
+    % sysid = 'int_mode1';
+    % sysid = 'int_mode2';
+    % sysid = 'int_mode3';
+    sysid = 'int_mode4';
+
+    % Create model using si using integrator design
+    % load_path = 'Log\integrator_ssm_supply_mode1';
+    % load_path = 'Log\integrator_ssm_supply_mode2';
+    % load_path = 'Log\integrator_ssm_supply_mode3';
+    load_path = 'Log\integrator_ssm_supply_mode4';
+
 end
 
 % Save file names and location
-folder = strcat('Results\OSV\',sysid);
-file_prefix = strcat('osv_', sysid, simulation_type);
+folder = strcat('Results\LQ_supply\',sysid);
+file_prefix = strcat('supply_', sysid, simulation_type);
 
 store_workspace = true;
 workspace_file_name = file_prefix;
 
-% Create model using DSR generated matrices
-load_path = strcat('Log\', sysid, '_ssm_osv');
 si = load(load_path);
 A_si = si.A;
 B_si = si.B;
 C_si = si.C;
 
 dt = si.dt;
+
+% Fetch M and D matrices
+% See Identification of dynamically positioned ship paper written by Thor
+% Inge Fossen et al (1995).
+[~, ~, M, D] = supply();
 
 % Preallocate arrays
 t_array = zeros(1,N+1);                 % Time array
@@ -57,8 +68,6 @@ y_meas_array = zeros(3,N+1);            % Measurement array
 y_meas_array(:,1) = y0_meas;            % Storing initial value of measurement 
 
 u_array = zeros(3,N);                   % Control input array
-u_mod_array = zeros(6,N);               % Control input array to OSV model (RPS)
-u_generalized = zeros(3,N);             % Generalized force and moment
 
 u_prev = zeros(3,1);                    % Previous control signal
 
@@ -81,26 +90,14 @@ end
 % Store Kalman gain
 K_array = zeros(n_kal_dim*3,N);   % Storing Kalman filter gain
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Data from OSV model %%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%
-K_max = [300e3 300e3 420e3 655e3]';
-n_max = [140 140 150 200]';
-K_thr = diag(K_max./n_max.^2);
-
-L = 83;
-l_x = [37, 35, -L/2, -L/2];
-l_y = [0, 0, 7, -7];
-
-T_thr = thrConfig( {'T', 'T', deg2rad(azimuth_angle_1), deg2rad(azimuth_angle_2)}, l_x, l_y);
-
 for i=1:N
 
     % Get vessel heading
     psi = y_meas(3);
     
     % Calculate discrete supply model matrices
-    [A_lin, B_lin, C_lin] = dp_model_discrete_matrices_si(A_si, B_si, C_si, psi, dt);
+
+    [A_lin, B_lin, C_lin] = dp_model_discrete_matrices_si_identity(A_si, B_si, C_si, psi, dt);
 
     % Calculate LQ gain on deviation form
     [G, G1, G2, A_dev, B_dev, C_dev] = calculate_lq_deviation_gain(A_lin, B_lin, C_lin, Q, P);
@@ -118,17 +115,28 @@ for i=1:N
     % Store the values of state, measurements and input as old values for
     % the next iteration of control calculations.
     y_prev = y_meas;
-    
-    % Calculate RPS input to OSV model
-    u_mod = [sign(u(1))*sqrt(abs(u(1))); 0; sign(u(2))*sqrt(abs(u(2)));...
-        sign(u(3))*sqrt(abs(u(3))); deg2rad(azimuth_angle_1); deg2rad(azimuth_angle_2)];
 
-    % Store the values of state, measurements and input as old values for
-    % the next iteration of control calculations.
-    y_prev = y_meas;
+    % Get wind forces and momentum
+    % The actual wind forces will depend on the real ship position, hence
+    % we use the state variables from the 'real' process.
+    wind_force = wind_force_calc(wind_abs(i), wind_beta(i), x(3), x(4), x(5), rho, Af, Al, L, Cx, Cy, Cn);
+    if (use_wind_force)
+        wind_force_array(:,i) = wind_force;
+    else
+        wind_force_array(:,i) = zeros(3,1);
+    end
 
-    % Extenal disturbance
-    tau = zeros(3,1); 
+    % Wave force is defined relative to NED coordinate frame. Forces must
+    % transformed to BODY Coordinate frame
+    rot = rotation_matrix(psi);
+    wave_force_array(:,i) = rot'*wave_force(:,i);
+
+    % Current force is defined relative to NED coordinate frame. Forces must
+    % transformed to BODY Coordinate frame
+    current_force_array(:,i) = rot'*current_force(:,i);
+
+    % Known forces, tau
+    tau = wind_force_array(:,i) + wave_force_array(:,i);
 
     %%%%%%%%%%%%%%%%%%%%
     %%% Update model %%%
@@ -136,20 +144,20 @@ for i=1:N
     switch (integration_method)
         case (IntegrationMethod.Forward_Euler)
             % Forward Euler
-            xdot = osv(x, u_mod, current_velocity(i), current_angle(i));
+            xdot = supply_model(t, x, u, M, D, wind_force_array(:,i), wave_force_array(:,i), current_force_array(:,i));
             x = x + xdot*dt;
 
         case (IntegrationMethod.Runge_Kutta_Fourth_Order)
             % Runge-Kutta 4th order
-            [~, x] = runge_kutta_4(@(t, x) osv(x, u_mod, current_velocity(i), current_angle(i)), t, x, dt);
+            [~, x] = runge_kutta_4(@(t, x) supply_model(t, x, u, M, D, wind_force_array(:,i), wave_force_array(:,i), current_force_array(:,i)), t, x, dt);
     end
 
     % Measurement with added noise
     % This is the measurement for timestep k+1
     if (use_noise_in_measurements)
-        y_meas = [x(7);x(8);x(12)] + normrnd(measurement_noise_mean, measurement_noise_std, 3, 1);
+        y_meas = x(1:3) + normrnd(measurement_noise_mean, measurement_noise_std, 3, 1);
     else
-        y_meas = [x(7);x(8);x(12)];
+        y_meas = x(1:3);
     end
 
     % Update measurement
@@ -161,7 +169,7 @@ for i=1:N
     if (run_kalman_filter)
 
         % Calculate discrete dp model matrices
-        [A_lin, B_lin, F_lin, C_lin] = dp_model_discrete_matrices_si_int(A_si, B_si, C_si, psi, dt);
+        [A_lin, B_lin, F_lin, C_lin] = dp_model_discrete_matrices_si_int_identity(A_si, B_si, C_si, psi, dt);
 
         % Get Kalman gain from inbuilt MATLAB function dlqe
         [K,~,~,~] = dlqe(A_lin, G_lin, C_lin, W, V);
@@ -192,14 +200,12 @@ for i=1:N
     x_array(:,i+1) = x;
     x_est_array(:,i+1) = x_est; 
     u_array(:,i) = u;
-    u_mod_array(:,i) = u_mod;
-    u_generalized(:,i) = T_thr*K_thr*[u(1); 0; u(2); u(3)];
 
     if (~exist('external_scenario', 'var'))
         % Output data
         disp(['Current time: ', num2str(t)]);
-        disp(['Integrator term : ', 'b(1): ', num2str(x_est(10)), ' b(2): ', num2str(x_est(11)), ...
-            ' b(3): ', num2str(x_est(12))]);
+        disp(['Integrator term : ', 'b(1): ', num2str(x_est(7)), ' b(2): ', num2str(x_est(8)), ...
+            ' b(3): ', num2str(x_est(9))]);
     
         % Update animated positon plot
         if (animate_kalman_estimate)
@@ -210,11 +216,10 @@ for i=1:N
             pause(animation_delay);
         end
     end
-
 end
 
 % Plot data
-plot_osv_model_lq(t_array, x_array, K_array, u_array, setpoint, true, folder, file_prefix);
+plot_dp_model_lq(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true, folder, file_prefix);
 
 % Store workspace
 if (store_workspace)

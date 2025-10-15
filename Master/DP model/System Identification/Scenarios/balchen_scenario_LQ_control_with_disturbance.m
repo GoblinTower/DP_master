@@ -3,7 +3,7 @@
 % Add seed (meaning og life)
 rng(42,"twister");
 
-dt = 0.1;           % Timestep used in integration
+dt = 0.3;           % Timestep used in integration
 
 T = 1200;           % End time
 N = ceil(T/dt);     % Number of sample steps
@@ -41,7 +41,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%
 run_kalman_filter = true;
 
-W = diag([1e2, 1e2, 1e2, 1e2, 1e2, 1e2, 1e2, 1e2, 1e2, 1e12, 1e12, 1e12]);      % Process noise
+W = diag([1e2, 1e2, 1e2, 1e2, 1e2, 1e2, 1e2, 1e2, 1e2, 1e12, 1e12, 1e12]);         % Process noise
 V = 10.0*eye(3);                                                                % Measurement noise
 
 x0_est = [0; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0];    % Initial state estimate

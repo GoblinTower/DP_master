@@ -1,19 +1,28 @@
-clear, clc, close all;
+% Script for performing system identification based on the 
+% input and output data from a vessel simulation, in this case
+% simulated using the supply model from MSS (Marine Systems Simulator)
+% toolbox.
 
 addpath("..\..\..\Tools\");
 
-% Load configuration data
-% run 'setup_supply_variable_input_prbs';
-run 'setup_supply_variable_input_prbs_cont';
+if (exist('external_scenario', 'var'))
+    run 'setup_supply_variable_input_prbs';
+else
+    % This section represents code used when running this script directly
+    clear, clc, close all;
+    % Load configuration data
+    run 'setup_supply_variable_input_prbs';
+    % run 'setup_supply_variable_input_prbs_cont';
 
-% Type of sys_identification
-% sysid = 'dsr';
-% sysid = 'dsr_e';
-sysid = 'pem';
+    % Type of sys_identification
+    % sysid = 'dsr';
+    % sysid = 'dsr_e';
+    sysid = 'pem';
 
-% sysid = 'dsr_cont';
-% sysid = 'dsr_e_cont';
-% sysid = 'pem_cont';
+    % sysid = 'dsr_cont';
+    % sysid = 'dsr_e_cont';
+    % sysid = 'pem_cont';
+end
 
 % Preallocate arrays
 t = 0;

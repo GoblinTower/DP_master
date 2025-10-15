@@ -3,9 +3,9 @@
 % Add seed (meaning og life)
 rng(42,"twister");
 
-dt = 0.5;           % Timestep used in integration
+dt = 0.3;           % Timestep used in integration
 
-T = 500;            % End time
+T = 1200;           % End time
 N = ceil(T/dt);     % Number of sample steps
 
 n_dim_control = 9;
@@ -29,7 +29,7 @@ for k=1:N
     time = k*dt;
     if (time < 100)
         setpoint(:,k) = [0; 0; 0];
-    elseif (time < 300)
+    elseif (time < 600)
         setpoint(:,k) = [10; 5; deg2rad(30)];
     else
         setpoint(:,k) = [-5; -5; deg2rad(45)];
@@ -41,7 +41,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%
 run_kalman_filter = true;
 
-W = diag([1e2, 1e2, 1e2, 1e2, 1e2, 1e2, 1e2, 1e2, 1e2, 1e15, 1e15, 1e15]);      % Process noise
+W = diag([1e2, 1e2, 1e2, 1e2, 1e2, 1e2, 1e2, 1e2, 1e2, 1e12, 1e12, 1e12]);      % Process noise
 V = 10.0*eye(3);                                                                % Measurement noise
 
 x0_est = [0; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0; 0];    % Initial state estimate
@@ -80,8 +80,8 @@ use_wave_force = true;
 use_wind_force = true;
 
 % Current
-% current_variance = [1e3; 1e3; 0];
-current_variance = [0; 0; 0];
+current_variance = [1e3; 1e3; 0];
+% current_variance = [0; 0; 0];
 current_start_values = [1e5; 2e5; 0];
 
 current_force = zeros(3,N);

@@ -1,14 +1,23 @@
-clear, clc, close all;
+% Script for performing system identification based on the 
+% input and output data from a vessel simulation, in this case
+% simulated using the OSV model from MSS (Marine Systems Simulator)
+% toolbox
 
 addpath("..\..\..\Tools\");
 
-% Load configuration data
-run 'setup_osv_variable_input_prbs';
+if (exist('external_scenario', 'var'))
+    run 'setup_osv_variable_input_prbs';
+else
+    % This section represents code used when running this script directly
+    clear, clc, close all;
+    % Load configuration data  
+    run 'setup_osv_variable_input_prbs';
 
-% Type of sys_identification
-sysid = 'dsr';
-% sysid = 'dsr_e';
-% sysid = 'pem';
+    % Type of sys_identification
+    sysid = 'dsr';
+    % sysid = 'dsr_e';
+    % sysid = 'pem';
+end
 
 % Preallocate arrays
 t = 0;
