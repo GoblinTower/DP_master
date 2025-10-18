@@ -12,10 +12,8 @@ supply_str2 = load('Workspace\supply_int_mode4_no_dist.mat');
 
 % Strategy 3
 supply_str3 = load('Workspace\supply_int_mode2_no_dist.mat');
-
-
     
-run_strategy = 2;
+run_strategy = 3;
 
 if (run_strategy == 2)
     lmf = [supply_str2];                 % Shortcut for List of .Mat Files
@@ -32,9 +30,9 @@ show_setpoints = true;                             % Show setpoints in plot
 plot_details.path_xlim = [-10,7];
 plot_details.path_ylim = [-10,12];
 
-plot_details.force_surge_exponent = 6;
-plot_details.force_sway_exponent = 6;
-plot_details.momentum_yaw_exponent = 8;
+plot_details.force_surge_exponent = 5;
+plot_details.force_sway_exponent = 5;
+plot_details.momentum_yaw_exponent = 6;
 
 plot_details.kalman_exponent = 5;
 

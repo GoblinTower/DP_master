@@ -22,7 +22,7 @@ plot_details.force_surge_exponent = 5;
 plot_details.force_sway_exponent = 5;
 plot_details.momentum_yaw_exponent = 6;
 
-plot_details.kalman_exponent = 5;
+plot_details.kalman_exponent = 4;
 
 plot_details.wind_surge_exponent = 4;
 plot_details.wind_sway_exponent = 4;

@@ -18,10 +18,12 @@ assert(length(lmf) == length(nos), ...
     'Error: name of simulations and number of .mat files must be equal');
 number_of_simulations = length(lmf);
 
+dp = get(groot, 'DefaultFigurePosition');   % Default position
+
 %%%%%%%%%%%%%%%%%%
 %%% Path plots %%%
 %%%%%%%%%%%%%%%%%%
-f1 = figure('DefaultAxesFontSize', font_size);
+f1 = figure('DefaultAxesFontSize', 20, 'Position', [dp(1), dp(2), dp(3), 0.7*dp(4)]);
 t = tiledlayout(1, number_of_simulations, "TileSpacing", "compact");
 
 for i=1:number_of_simulations
@@ -49,8 +51,8 @@ save_plot(f1, 'path', folder);
 %%%%%%%%%%%%%%
 %%% Forces %%%
 %%%%%%%%%%%%%%
-f2 = figure('DefaultAxesFontSize', font_size);
-t = tiledlayout(3, number_of_simulations, "TileSpacing", "compact");
+f2 = figure('DefaultAxesFontSize', 13);
+t = tiledlayout(3, number_of_simulations, "TileSpacing", "tight");
 
 length_time = min(size(lmf(1).t_array,2), size(lmf(1).u_array,2));
 
@@ -117,7 +119,7 @@ save_plot(f2, 'forces', folder);
 %%% Position NED %%%
 %%%%%%%%%%%%%%%%%%%%
 f3 = figure('DefaultAxesFontSize', font_size);
-t = tiledlayout(3, number_of_simulations, "TileSpacing", "compact");
+t = tiledlayout(3, number_of_simulations, "TileSpacing", "tight");
 
 % Position north
 for i=1:number_of_simulations
@@ -133,7 +135,7 @@ for i=1:number_of_simulations
     grid();
     title(strcat('Position north (', nos(i), ')'));
     xlabel('t [s]');
-    ylabel('North, x [m]');
+    ylabel('North, x^n [m]');
     grid on, grid minor;
     box on;
     xlim('padded');
@@ -155,7 +157,7 @@ for i=1:number_of_simulations
     grid();
     title(strcat('Position east (', nos(i), ')'));
     xlabel('t [s]');
-    ylabel('East, x [m]');
+    ylabel('East, y^n [m]');
     grid on, grid minor;
     box on;
     ylim('padded');
@@ -190,7 +192,7 @@ save_plot(f3, 'setpoint_tracking', folder);
 %%% Velocity and angular momentum in BODY frame %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 f4 = figure('DefaultAxesFontSize', font_size);
-t = tiledlayout(3, number_of_simulations, "TileSpacing", "compact");
+t = tiledlayout(3, number_of_simulations, "TileSpacing", "tight");
 
 % Velocity surge
 for i=1:number_of_simulations
@@ -248,8 +250,8 @@ save_plot(f4, 'velocity', folder);
 %%%%%%%%%%%%%%%%%%%
 %%% Kalman gain %%%
 %%%%%%%%%%%%%%%%%%%
-f5 = figure('DefaultAxesFontSize', font_size);
-t = tiledlayout(1, number_of_simulations, "TileSpacing", "compact");
+f5 = figure('DefaultAxesFontSize', 14, 'Position', [dp(1), dp(2), dp(3), 0.7*dp(4)]);
+t = tiledlayout(1, number_of_simulations, "TileSpacing", "tight");
 
 for i=1:number_of_simulations
 
@@ -257,7 +259,7 @@ for i=1:number_of_simulations
     hold on;
     plot(lmf(i).t_array(1:length_time), lmf(i).K_array(:,1:length_time));
     grid();
-    title(strcat('Kalman gain values (', nos(i), ')'));
+    title(strcat('Kalman gain (', nos(i), ')'));
     xlabel('t [s]');
     ylabel('Gain matrix entries');
     ax = gca;
@@ -275,12 +277,12 @@ save_plot(f5, 'kalman', folder);
 %%%%%%%%%%%%
 %%% Wind %%%
 %%%%%%%%%%%%
-if (large_plots)
-    f6 =  figure('DefaultAxesFontSize', font_size);
-else
-    f6 =  figure('DefaultAxesFontSize', font_size, 'Position', [0,0,800,1000]);
-end
-t = tiledlayout(2, 1, "TileSpacing", "compact");
+% if (large_plots)
+%     f6 =  figure('DefaultAxesFontSize', font_size);
+% else
+%     f6 =  figure('DefaultAxesFontSize', font_size, 'Position', [0,0,800,1000]);
+% end
+% t = tiledlayout(2, 1, "TileSpacing", "compact");
 
 % Absolute velocity
 % nexttile;
@@ -345,7 +347,7 @@ t = tiledlayout(2, 1, "TileSpacing", "compact");
 % box on;
 % hold off;
 
-save_plot(f6, 'wind', folder);
+% save_plot(f6, 'wind', folder);
 
 %%%%%%%%%%%%%%%
 %%% Current %%%
@@ -361,7 +363,7 @@ save_plot(f6, 'wind', folder);
 % grid();
 % title('Current in north direction');
 % xlabel('t [s]');
-% ylabel('Force in North [N]');
+% ylabel('Force in north [N]');
 % legend({'Current force', 'Est. current force'}, 'Location', 'Best');
 % ax = gca;
 % ax.YAxis.Exponent = details.current_north_exponent;

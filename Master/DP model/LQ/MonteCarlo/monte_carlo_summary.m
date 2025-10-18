@@ -55,7 +55,11 @@ heading_changes = squeeze(setpoint_array_common(3, [1, time_of_heading_changes],
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Plot simulation results %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-f1 = figure('DefaultAxesFontSize', 20, 'Position', [0, 0, 1200, 1600]);
+% f1 = figure('DefaultAxesFontSize', 20, 'Position', [0, 0, 1200, 1600]);
+
+dp = get(groot, 'DefaultFigurePosition');   % Default position
+
+f1 = figure('DefaultAxesFontSize', 20, 'Position', [dp(1), 0.3*dp(2), dp(3), 1.3*dp(4)]);
 t = tiledlayout(4, 1, "TileSpacing", "compact");
 
 %% RMSE without disturbance
@@ -65,11 +69,11 @@ plot(error_lq_no_disturbance_rmse(1,:));
 plot(error_lq_no_disturbance_rmse(2,:));
 plot(error_lq_no_disturbance_rmse(3,:));
 grid();
-title('RMSE LQ control (no dist)');
+title('RMSE LQ optimal control (no dist)');
 xlabel('Simulation number');
 ylabel('RMSE');
 % legend({'Position North', 'Postion East', 'Yaw'}, 'Location', 'Best');
-legend({'Position North', 'Postion East', 'Yaw'}, 'Location', 'northeast');
+legend({'Position north', 'Postion east', 'Yaw'}, 'Location', 'northeast');
 grid on, grid minor;
 box on;
 hold off;
@@ -87,11 +91,11 @@ plot(error_lq_disturbance_rmse(1,:));
 plot(error_lq_disturbance_rmse(2,:));
 plot(error_lq_disturbance_rmse(3,:));
 grid();
-title('RMSE LQ control (inc. dist)');
+title('RMSE LQ optimal control (inc. dist)');
 xlabel('Simulation number');
 ylabel('RMSE');
 % legend({'Position North', 'Postion East', 'Yaw'}, 'Location', 'Best');
-legend({'Position North', 'Postion East', 'Yaw'}, 'Location', 'northeast');
+legend({'Position north', 'Postion east', 'Yaw'}, 'Location', 'northeast');
 grid on, grid minor;
 box on;
 hold off;
@@ -109,11 +113,11 @@ plot(error_lq_no_disturbance_iae(1,:));
 plot(error_lq_no_disturbance_iae(2,:));
 plot(error_lq_no_disturbance_iae(3,:));
 grid();
-title('IAE LQ control (no dist)');
+title('IAE LQ optimal control (no dist)');
 xlabel('Simulation number');
 ylabel('IAE');
 % legend({'Position North', 'Postion East', 'Yaw'}, 'Location', 'Best');
-legend({'Position North', 'Postion East', 'Yaw'}, 'Location', 'northeast');
+legend({'Position north', 'Postion east', 'Yaw'}, 'Location', 'northeast');
 grid on, grid minor;
 box on;
 hold off;
@@ -131,11 +135,11 @@ plot(error_lq_disturbance_iae(1,:));
 plot(error_lq_disturbance_iae(2,:));
 plot(error_lq_disturbance_iae(3,:));
 grid();
-title('IAE LQ control (inc. dist)');
+title('IAE LQ optimal control (inc. dist)');
 xlabel('Simulation number');
 ylabel('IAE');
 % legend({'Position North', 'Postion East', 'Yaw'}, 'Location', 'Best');
-legend({'Position North', 'Postion East', 'Yaw'}, 'Location', 'northeast');
+legend({'Position north', 'Postion east', 'Yaw'}, 'Location', 'northeast');
 grid on, grid minor;
 box on;
 hold off;
@@ -162,21 +166,24 @@ for i=1:number_of_simulations
     total_heading_change_array(1,i) = sum(get_smallest_angle_differences(heading_changes(:,i)));
 end
 
-f2 = figure('DefaultAxesFontSize', 20);
-t = tiledlayout(1, 1, "TileSpacing", "compact");
-
-nexttile;
-hold on;
-plot(rad2deg(total_heading_change_array));
-grid();
-title('Total heading setpoint change');
-xlabel('Simulation number');
-ylabel('Total heading change [°]');
-grid on, grid minor;
-box on;
-hold off;
-
-save_plot(f2, 'mc_results_heading_change', 'Results\');
+show_angle_changes = true;
+if (show_angle_changes)
+    f2 = figure('DefaultAxesFontSize', 20);
+    t = tiledlayout(1, 1, "TileSpacing", "compact");
+    
+    nexttile;
+    hold on;
+    plot(rad2deg(total_heading_change_array));
+    grid();
+    title('Total heading setpoint change');
+    xlabel('Simulation number');
+    ylabel('Total heading change [°]');
+    grid on, grid minor;
+    box on;
+    hold off;
+    
+    save_plot(f2, 'mc_results_heading_change', 'Results\');
+end
 
 function diff = get_smallest_angle_differences(angle_array)
     % Assumes input is in radians

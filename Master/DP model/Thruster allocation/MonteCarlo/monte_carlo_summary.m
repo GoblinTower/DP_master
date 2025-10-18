@@ -71,7 +71,9 @@ f_total_azimuth_slack = squeeze(sum(abs(f_azimuth_slack_variable), 2));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Plot simulation results %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-f1 = figure('DefaultAxesFontSize', 20, 'Position', [0, 0, 1200, 1600]);
+dp = get(groot, 'DefaultFigurePosition');   % Default position
+
+f1 = figure('DefaultAxesFontSize', 20, 'Position', [dp(1), dp(2), dp(3), 1.2*dp(4)]);
 t = tiledlayout(3, 1, "TileSpacing", "compact");
 
 %% Lagrange formulation - 1 and 2 tunnel thrusters
@@ -80,7 +82,7 @@ hold on;
 plot(sum(f_total_1_tunnel(:,:),1), 'r*');
 plot(sum(f_total_2_tunnel(:,:),1), 'k*');
 grid();
-title('Integrated absolute value of force (Lagrange)');
+title('Integrated absolute value of force (Explicit)');
 xlabel('Simulation number');
 ylabel('IAF');
 legend({'1 tunnel', '2 tunnels'}, 'Location', 'Best');
@@ -188,7 +190,8 @@ save_plot(f1, 'mc_results', 'Results\');
 % box on;
 % hold off;
 
-f2 = figure('DefaultAxesFontSize', 20, 'Position', [0, 0, 1200, 1600]);
+
+f2 = figure('DefaultAxesFontSize', 20, 'Position', [dp(1), dp(2), dp(3), dp(4)]);
 t = tiledlayout(2, 1, "TileSpacing", "compact");
 
 nexttile;

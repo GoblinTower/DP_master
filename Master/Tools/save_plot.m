@@ -20,5 +20,6 @@ function save_plot(figure, file_name, folder_name)
     % Save plots
     saveas(figure, strcat(folder_name, '\', file_name, '.fig'));
     saveas(figure, strcat(folder_name, '\', file_name, '.png'));
+    saveas(figure, strcat(folder_name, '\', file_name, '.eps'), 'epsc');
 
 end

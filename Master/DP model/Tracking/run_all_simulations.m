@@ -32,24 +32,24 @@ run 'LQ_trajectory_tracking';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Run without disturbance %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-run_with_disturbance = false;
-
-clearvars -except external_scenario run_with_disturbance;
-close all;
-disp('Running simulation 5/8');
-run 'LPV_simple_tracking';
-
-clearvars -except external_scenario run_with_disturbance;
-close all;
-disp('Running simulation 6/8');
-run LPV_trajectory_tracking.m;
-
-clearvars -except external_scenario run_with_disturbance;
-close all;
-disp('Running simulation 7/8');
-run 'LQ_simple_tracking';
-
-clearvars -except external_scenario run_with_disturbance;
-close all;
-disp('Running simulation 8/8');
-run 'LQ_trajectory_tracking';
+% run_with_disturbance = false;
+% 
+% clearvars -except external_scenario run_with_disturbance;
+% close all;
+% disp('Running simulation 5/8');
+% run 'LPV_simple_tracking';
+% 
+% clearvars -except external_scenario run_with_disturbance;
+% close all;
+% disp('Running simulation 6/8');
+% run LPV_trajectory_tracking.m;
+% 
+% clearvars -except external_scenario run_with_disturbance;
+% close all;
+% disp('Running simulation 7/8');
+% run 'LQ_simple_tracking';
+% 
+% clearvars -except external_scenario run_with_disturbance;
+% close all;
+% disp('Running simulation 8/8');
+% run 'LQ_trajectory_tracking';

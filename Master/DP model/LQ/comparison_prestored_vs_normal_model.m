@@ -9,7 +9,7 @@ lq_stored = load('Workspace\lq_dp_model_stored_matrices_dist_data.mat');
 lq_normal = load('Workspace\lq_dp_model_no_stored_matrices_dist_data.mat');
  
 lmf = [lq_stored, lq_normal];                               % Shortcut for List of .Mat Files
-nos = {'LQ control stored', 'LQ control normal'};           % Shortcut for Name Of Simulations
+nos = {'pre-stored matrices', 'normal'};           % Shortcut for Name Of Simulations
 
 storage_folder = 'Workspace\TimeComparison';                  % Path where plots are stored
 

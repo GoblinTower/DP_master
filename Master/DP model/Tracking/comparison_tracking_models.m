@@ -79,6 +79,6 @@ if (simple_tracking)
 else
     show_current_estimate = false;
     model_number_environmental = 1;
-    [iae, tv] = plot_data_extended(lmf, nos, show_setpoints, 20, storage_path, plot_details, ...
+    [iae, tv] = plot_data_extended_cubic_spline(lmf, nos, show_setpoints, 20, storage_path, plot_details, ...
         show_current_estimate, model_number_environmental);
 end

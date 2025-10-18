@@ -7,7 +7,7 @@
 f1 = figure('DefaultAxesFontSize', 20);
 t = tiledlayout(3, 2, "TileSpacing", "compact");
 
-use_reduction_factor = true;
+use_reduction_factor = false;
 
 if (use_reduction_factor)
     plots_to_display = [1, 3, 30];

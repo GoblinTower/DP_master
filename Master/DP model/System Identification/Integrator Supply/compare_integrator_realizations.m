@@ -51,7 +51,7 @@ for i=1:3
     title(title_name);
     xlabel('Time [s]');
     ylabel('u [m/s]');
-    legend({'Vessel model data', 'Estimated from SI model'}, 'Location', 'northeast');
+    legend({'Vessel data', 'SI model'}, 'Location', 'northeast');
     grid on, grid minor;
     box on;
     ylim('padded');
@@ -66,13 +66,13 @@ for i=1:3
     title(title_name);
     xlabel('Time [s]');
     ylabel('v [m/s]');
-    legend({'Vessel model data', 'Estimated from SI model'}, 'Location', 'northeast');
+    legend({'Vessel data', 'SI model'}, 'Location', 'northeast');
     grid on, grid minor;
     box on;
     ylim('padded');
     hold off;
     
-    title_name = strcat([cell2mat(titles(2)), cell2mat(model_case(i))]);
+    title_name = strcat([cell2mat(titles(3)), cell2mat(model_case(i))]);
     nexttile;
     hold on;
     plot(t_array(1:length), y_array(3,1:length));
@@ -81,7 +81,7 @@ for i=1:3
     title(title_name);
     xlabel('Time [s]');
     ylabel('r [rad/s]');
-    legend({'SI data', 'Estimated model'}, 'Location', 'northeast');
+    legend({'Vessel data', 'SI model'}, 'Location', 'northeast');
     grid on, grid minor;
     box on;
     ylim('padded');

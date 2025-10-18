@@ -6,7 +6,9 @@ time_data = load('time_measured.mat');
  
 % Plot time
 % f1 = figure('units', 'normalized', 'outerposition', [0 0 1 1], 'DefaultAxesFontSize', 18);
-f1 = figure('DefaultAxesFontSize', 20);
+dp = get(groot, 'DefaultFigurePosition');   % Default position
+f1 = figure('DefaultAxesFontSize', 20, 'Position', [dp(1), dp(2), dp(3), 0.7*dp(4)]);
+
 t = tiledlayout(1, 1, "TileSpacing", "compact");
 
 nexttile;
@@ -14,10 +16,10 @@ hold on;
 plot(time_data.time_array_stored_matrices, 'r*');
 plot(time_data.time_array_continuously_calculated, 'k*');
 grid();
-title('Simulation time for stored versus continuously calculated matrices');
+title('Simulation time for stored versus repeatedly calculated matrices');
 xlabel('Simulation number');
 ylabel('Time [s]');
-legend({'Stored matrices simulation', 'Non-stored matrices simulation'}, 'Location', 'Best');
+legend({'Stored matrices simulation', 'Non-stored matrices simulation'}, 'Location', 'best');
 grid on, grid minor;
 box on;
 hold off;

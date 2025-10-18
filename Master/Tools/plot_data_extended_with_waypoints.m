@@ -18,10 +18,12 @@ assert(length(lmf) == length(nos), ...
     'Error: name of simulations and number of .mat files must be equal');
 number_of_simulations = length(lmf);
 
+dp = get(groot, 'DefaultFigurePosition');   % Default position
+
 %%%%%%%%%%%%%%%%%%
 %%% Path plots %%%
 %%%%%%%%%%%%%%%%%%
-f1 = figure('DefaultAxesFontSize', font_size);
+f1 = figure('DefaultAxesFontSize', 20, 'Position', [dp(1), dp(2), dp(3), 0.7*dp(4)]);
 t = tiledlayout(1, number_of_simulations, "TileSpacing", "compact");
 
 for i=1:number_of_simulations
@@ -31,7 +33,7 @@ for i=1:number_of_simulations
     plot(lmf(i).x_array(2,:), lmf(i).x_array(1,:))
     plot(lmf(i).x_array(2,1), lmf(i).x_array(1,1), 'ko', 'MarkerSize', 10, 'LineWidth', 3);         % Start position
     plot(lmf(i).x_array(2,end), lmf(i).x_array(1,end), 'ro', 'MarkerSize', 10, 'LineWidth', 3);     % End position
-    plot(lmf(i).waypoints(2,:), lmf(i).waypoints(1,:), 'bx', 'MarkerSize', 10, 'LineWidth', 3);     % End waypoints
+    plot(lmf(i).waypoints(2,:), lmf(i).waypoints(1,:), 'bx', 'MarkerSize', 10, 'LineWidth', 3);     % Waypoints
     grid();
     title(strcat('Path (', nos(i), ')'));
     xlabel('East [m]');
@@ -133,7 +135,7 @@ for i=1:number_of_simulations
     grid();
     title(strcat('Position north (', nos(i), ')'));
     xlabel('t [s]');
-    ylabel('North, x [m]');
+    ylabel('north, x^n [m]');
     grid on, grid minor;
     box on;
     ylim('padded');
@@ -154,7 +156,7 @@ for i=1:number_of_simulations
     grid();
     title(strcat('Position east (', nos(i), ')'));
     xlabel('t [s]');
-    ylabel('East, x [m]');
+    ylabel('East, y^n [m]');
     grid on, grid minor;
     box on;
     ylim('padded');
@@ -247,7 +249,7 @@ save_plot(f4, 'velocity', folder);
 %%%%%%%%%%%%%%%%%%%
 %%% Kalman gain %%%
 %%%%%%%%%%%%%%%%%%%
-f5 = figure('DefaultAxesFontSize', font_size);
+f5 = figure('DefaultAxesFontSize', 20, 'Position', [dp(1), dp(2), dp(3), 0.7*dp(4)]);
 t = tiledlayout(1, number_of_simulations, "TileSpacing", "compact");
 
 for i=1:number_of_simulations
@@ -351,7 +353,7 @@ save_plot(f6, 'wind', folder);
 %%%%%%%%%%%%%%%
 %%% Current %%%
 %%%%%%%%%%%%%%%
-f7 = figure('DefaultAxesFontSize', font_size);
+f7 = figure('DefaultAxesFontSize', 20, 'Position', [dp(1), dp(2), dp(3), 0.7*dp(4)]);
 t = tiledlayout(1, 2, "TileSpacing", "compact");
 
 % Current in north direction
@@ -365,8 +367,7 @@ end
 grid();
 title('Current in north direction');
 xlabel('t [s]');
-ylabel('Force in North [N]');
-legend({'Current force', 'Est. current force'}, 'Location', 'Best');
+ylabel('Force in north [N]');
 ax = gca;
 ax.YAxis.Exponent = details.current_north_exponent;
 grid on, grid minor;

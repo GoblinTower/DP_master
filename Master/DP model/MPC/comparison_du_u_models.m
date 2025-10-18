@@ -36,11 +36,11 @@ end
 % lmf = [mpc_const_psi, mpc_const_r, lpv, body];              % Shortcut for List of .Mat Files
 % nos = {'Constant \psi', 'Constant r', 'LPV', 'Body' };      % Shortcut for Name Of Simulations
 
-lmf = [mpc_const_psi, mpc_const_r, lpv];                    % Shortcut for List of .Mat Files
-nos = {'const. \psi', 'const. r', 'LPV'};                   % Shortcut for Name Of Simulations
+lmf = [mpc_const_psi, mpc_const_r, lpv];                      % Shortcut for List of .Mat Files
+nos = {'\psi', 'r', 'LPV'};                                   % Shortcut for Name Of Simulations
 
 if (disturbance_included)
-    storage_path = 'Workspace\Dist';                        % Path where plots are stored
+    storage_path = 'Workspace\Dist';                          % Path where plots are stored
 else
     storage_path = 'Workspace\No_Dist';
 end
@@ -58,7 +58,7 @@ plot_details.force_surge_exponent = 6;
 plot_details.force_sway_exponent = 6;
 plot_details.momentum_yaw_exponent = 8;
 
-plot_details.kalman_exponent = 5;
+plot_details.kalman_exponent = 4;
 
 plot_details.wind_surge_exponent = 4;
 plot_details.wind_sway_exponent = 4;
@@ -74,5 +74,5 @@ plot_details.wave_momentum_exponent = 3;
 show_current_estimate = false;
 model_number_environmental = 2;
 
-[iae, tv] = plot_data_extended(lmf, nos, show_setpoints, 20, storage_path, plot_details, ...
+[iae, tv] = plot_data_extended_large(lmf, nos, show_setpoints, 20, storage_path, plot_details, ...
     show_current_estimate, model_number_environmental);

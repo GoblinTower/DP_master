@@ -141,7 +141,7 @@ close(fig), close(fig2)
 clear, clc, close all;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Write out thruster usage matric %%%
+%%% Write out thruster usage metric %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function fig = plot_non_rotatable_setup(ws, font_size)
@@ -149,8 +149,10 @@ function fig = plot_non_rotatable_setup(ws, font_size)
     length = min(size(ws.f_array, 2), size(ws.t_array, 2));
     number_of_thrusters = size(ws.thruster_names, 2);
 
+    dp = get(groot, 'DefaultFigurePosition');   % Default position
+
     % Create plot
-    fig = figure('DefaultAxesFontSize', font_size);
+    fig = figure('DefaultAxesFontSize', font_size, 'Position', [dp(1), dp(2), dp(3), 0.7*dp(4)]);
     t = tiledlayout(1, 1, "TileSpacing", "compact");
 
     % Thruster force

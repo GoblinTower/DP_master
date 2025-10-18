@@ -7,8 +7,8 @@ addpath("..\..\Tools\");
 number_of_simulations = 100;
 
 % Select data
-folder = 'Monte_Carlo';
-% folder = 'Monte_Carlo_Reduction';
+% folder = 'Monte_Carlo';
+folder = 'Monte_Carlo_Reduction';
 
 % Fetch data from first simulation, should be the same for all
 sim1 = load(strcat('Workspace\', folder, '\nmpc_mc_green_dp_dist_data_1.mat'));

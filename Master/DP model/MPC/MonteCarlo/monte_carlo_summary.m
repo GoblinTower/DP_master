@@ -62,8 +62,11 @@ heading_changes = squeeze(setpoint_array_common(3, [1, time_of_heading_changes],
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Plot simulation results %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-f1 = figure('DefaultAxesFontSize', 20, 'Position', [0, 0, 1200, 1600]);
-t = tiledlayout(3, 2, "TileSpacing", "compact");
+dp = get(groot, 'DefaultFigurePosition');   % Default position
+
+f1 = figure('DefaultAxesFontSize', 20, 'Position', [dp(1), 0.0*dp(2), dp(3), 3/2*1.3*dp(4)]);
+% f1 = figure('DefaultAxesFontSize', 20, 'Position', [0, 0, 1200, 1600]);
+t = tiledlayout(6, 1, "TileSpacing", "tight");
 
 %% RMSE MPC with constant psi with disturbance
 nexttile;
@@ -76,7 +79,7 @@ title('RMSE in MPC (const \psi)');
 xlabel('Simulation number');
 ylabel('RMSE');
 % legend({'Position North', 'Postion East', 'Yaw'}, 'Location', 'Best');
-legend({'Position North', 'Postion East', 'Yaw'}, 'Location', 'northeast');
+legend({'Position north', 'Postion east', 'Yaw'}, 'Location', 'northeast');
 grid on, grid minor;
 box on;
 hold off;
@@ -98,7 +101,7 @@ title('IAE in MPC (const \psi)');
 xlabel('Simulation number');
 ylabel('IAE');
 % legend({'Position North', 'Postion East', 'Yaw'}, 'Location', 'Best');
-legend({'Position North', 'Postion East', 'Yaw'}, 'Location', 'northeast');
+legend({'Position north', 'Postion east', 'Yaw'}, 'Location', 'northeast');
 grid on, grid minor;
 box on;
 hold off;
@@ -120,7 +123,7 @@ title('RMSE MPC (const r)');
 xlabel('Simulation number');
 ylabel('RMSE');
 % legend({'Position North', 'Postion East', 'Yaw'}, 'Location', 'Best');
-legend({'Position North', 'Postion East', 'Yaw'}, 'Location', 'northeast');
+legend({'Position north', 'Postion east', 'Yaw'}, 'Location', 'northeast');
 grid on, grid minor;
 box on;
 hold off;
@@ -142,7 +145,7 @@ title('IAE MPC (const r)');
 xlabel('Simulation number');
 ylabel('IAE');
 % legend({'Position North', 'Postion East', 'Yaw'}, 'Location', 'Best');
-legend({'Position North', 'Postion East', 'Yaw'}, 'Location', 'northeast');
+legend({'Position north', 'Postion east', 'Yaw'}, 'Location', 'northeast');
 grid on, grid minor;
 box on;
 hold off;
@@ -163,7 +166,7 @@ grid();
 title('RMSE in MPC (LPV)');
 xlabel('Simulation number');
 ylabel('RMSE');
-legend({'Position North', 'Postion East', 'Yaw'}, 'Location', 'northeast');
+legend({'Position north', 'Postion east', 'Yaw'}, 'Location', 'northeast');
 grid on, grid minor;
 box on;
 hold off;
@@ -184,7 +187,7 @@ grid();
 title('IAE in MPC (LPV)');
 xlabel('Simulation number');
 ylabel('IAE');
-legend({'Position North', 'Postion East', 'Yaw'}, 'Location', 'northeast');
+legend({'Position north', 'Postion east', 'Yaw'}, 'Location', 'northeast');
 grid on, grid minor;
 box on;
 hold off;

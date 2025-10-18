@@ -14,7 +14,7 @@ else
 end
     
 lmf = [sim];                        % Shortcut for List of .Mat Files
-nos = {'LQ supply'};                % Shortcut for Name Of Simulations
+nos = {'LQ optimal control'};                % Shortcut for Name Of Simulations
     
 if (disturbance_included)
     storage_path = 'Workspace\Simulation\Dist';     % Path where plots are stored
@@ -27,9 +27,9 @@ show_setpoints = true;                                               % Show setp
 plot_details.path_xlim = [-6,6];
 plot_details.path_ylim = [-2,12];
 
-plot_details.force_surge_exponent = 6;
-plot_details.force_sway_exponent = 6;
-plot_details.momentum_yaw_exponent = 8;
+plot_details.force_surge_exponent = 5;
+plot_details.force_sway_exponent = 5;
+plot_details.momentum_yaw_exponent = 6;
 
 plot_details.kalman_exponent = 5;
 

@@ -1,8 +1,5 @@
 % File containing the external disturbances common to all simulation runs
 
-% Add seed (to ensure same disturbances at every run)
-rng(20,"twister");
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% External disturbances %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -13,6 +10,10 @@ current_variance = [1e3; 1e3; 0];
 current_start_values = [1e5; 2e5; 0];
 
 current_force = zeros(3,N);
+
+% Add seed (to ensure same disturbances at every run)
+rng(20,"twister");
+
 % Gaussian random walk
 if (use_current_force)
     current_force(:,1) = current_start_values;
@@ -25,6 +26,9 @@ end
 wave_variance = [1e2; 1e2; 1e2];
 % wave_variance = [0; 0; 0];
 wave_start_values = [1e4; 3e4; 5e2];
+
+% Add seed (to ensure same disturbances at every run)
+rng(31,"twister");
 
 wave_force = zeros(3,N);
 % Gaussian random walk
@@ -47,6 +51,9 @@ Cn = 0.125;         % Wind coefficient with respect to yaw
 % Estimation of beta (angle of attack) and wind velocity
 wind_variance = [0.1; 0.2]*dt;
 wind_start_values = [deg2rad(35); 10];
+
+% Add seed (to ensure same disturbances at every run)
+rng(54,"twister");
 
 wind = zeros(2,N);
 % Gaussian random walk

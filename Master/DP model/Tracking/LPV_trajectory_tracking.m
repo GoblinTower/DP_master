@@ -220,5 +220,5 @@ if (store_workspace)
         mkdir("Workspace");
     end
     save("Workspace/" + workspace_file_name, "x_array", "t_array", "u_array", "setpoint", "K_array", "wind_abs", "wind_beta", "wind_force_array", ...
-        "current_force", "wave_force", "x_est_array");
+        "current_force", "wave_force", "x_est_array", "waypoints");
 end
