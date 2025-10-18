@@ -3,7 +3,7 @@ clear, clc, close all;
 
 addpath("..\");
 
-run_simulation = 2;
+run_simulation = 1;
 
 if (run_simulation == 1)
 

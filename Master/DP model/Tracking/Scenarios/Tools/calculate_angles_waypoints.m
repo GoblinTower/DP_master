@@ -14,6 +14,8 @@ function extended_waypoints = calculate_angles_waypoints(waypoints, x0)
 %                      a bottom row for waypoint angles.
 %
 
+addpath("Tools\");
+
 % Number of waypoints
 last_waypoint_index = size(waypoints, 2);
 
@@ -26,6 +28,9 @@ for k=1:last_waypoint_index
         angle_array(k) = atan2(waypoints(2,k) - waypoints(2,k-1), waypoints(1,k) - waypoints(1,k-1));
     end
 end
+
+% Make sure shortest yaw angle change is always selected
+angle_array = find_closest_angle(angle_array);
 
 % Return the new extended waypoint array
 extended_waypoints = [waypoints; angle_array];

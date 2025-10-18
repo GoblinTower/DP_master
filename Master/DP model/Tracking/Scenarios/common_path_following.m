@@ -1,5 +1,7 @@
 % File containing the the waypoints used in path following (simple tracking)
 
+addpath("Tools\");
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Waypoint following %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -15,13 +17,27 @@ last_waypoint_index = size(waypoints, 2);
 
 show_path_plot = false;
 if (show_path_plot)
-    figure(1);
+    
+    fig = figure('DefaultAxesFontSize', 20);
+    t = tiledlayout(1,2, 'TileSpacing', 'compact');
+
+    nexttile;
     hold on;
     plot(waypoints(2,:), waypoints(1,:), 'bo-');
-    title("waypoints");
+    title("Waypoints");
     xlabel("East");
     ylabel("North");
-    legend({'Waypoints'}, 'Location', 'Best');
+    grid();
+    axis equal;
+    hold off;
+
+    nexttile;
+    hold on;
+    plot(rad2deg(waypoints(3,:)), 'bo-');
+    title("Angles");
+    xlabel("Waypoint");
+    ylabel("Angle");
     grid();
     hold off;
+
 end
