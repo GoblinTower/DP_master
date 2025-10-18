@@ -50,7 +50,7 @@ classdef AnimateCombined < handle
             
             % Initialized the figure
             % obj.ship_figure = figure('Position', [100, 100, 1200, 1200]);
-            obj.ship_figure = figure('units','normalized','outerposition',[0 0 1 1]);
+            obj.ship_figure = figure('units','normalized','outerposition',[0 0 1 1],'DefaultAxesFontSize',22);
 
             % Plot of individual thruster forces
             obj.ship_thruster_force_axes = subplot(2,3,1);
@@ -66,7 +66,9 @@ classdef AnimateCombined < handle
 
             % Lineplot of individual thruster forces
             obj.thruster_force_axes = subplot(2,3,[2,3]);
-            title(obj.thruster_force_axes, "Thruster force values");
+            title(obj.thruster_force_axes, "Thruster forces");
+            xlabel(obj.thruster_force_axes, "Time [s]");
+            ylabel(obj.thruster_force_axes, "Force [N]");
 
             % Create ship shap
             obj.ship_shape = polyshape([0, breadth/2, breadth/2, -breadth/2, -breadth/2], ...
@@ -91,7 +93,7 @@ classdef AnimateCombined < handle
             end
             obj.thruster_force_handle = tmp;
 
-            legend(obj.thruster_force_axes, tmp);
+            legend(obj.thruster_force_axes, tmp, 'Location', 'northwest');
            
         end 
       
@@ -126,17 +128,17 @@ classdef AnimateCombined < handle
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
             % Plot thruster forces
-            PlottingForcesShip(obj, obj.ship_total_thruster_forces_axes, heading, thr_force_surge, thr_force_sway, thr_momentum_yaw, current_ship, "Forces in surge, sway and yaw due to thrusters", scale_surge, scale_sway, scale_momentum)
+            PlottingForcesShip(obj, obj.ship_total_thruster_forces_axes, heading, thr_force_surge, thr_force_sway, thr_momentum_yaw, current_ship, "Net forces and moment due thrusters", scale_surge, scale_sway, scale_momentum)
             
             % Plot environmental forces
-            PlottingForcesShip(obj, obj.ship_total_env_forces_axes, heading, env_force_surge, env_force_sway, env_momentum_yaw, current_ship, "Forces in surge, sway and yaw due to environment", scale_surge, scale_sway, scale_momentum)
+            PlottingForcesShip(obj, obj.ship_total_env_forces_axes, heading, env_force_surge, env_force_sway, env_momentum_yaw, current_ship, "Net forces and moment due to environment", scale_surge, scale_sway, scale_momentum)
 
             total_force_surge = thr_force_surge + env_force_surge;
             total_force_sway = thr_force_sway + env_force_sway;
             total_momentum_yaw = thr_momentum_yaw + env_momentum_yaw;
 
             % Plot total forces
-            PlottingForcesShip(obj, obj.ship_total_forces_axes, heading, total_force_surge, total_force_sway, total_momentum_yaw, current_ship, "Total forces/momentum in surge, sway and yaw", scale_surge, scale_sway, scale_momentum)
+            PlottingForcesShip(obj, obj.ship_total_forces_axes, heading, total_force_surge, total_force_sway, total_momentum_yaw, current_ship, "Net forces and moment", scale_surge, scale_sway, scale_momentum)
          
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             %%% Force plot of individual thruster forces %%%
@@ -267,7 +269,7 @@ classdef AnimateCombined < handle
         end
 
         function delete(obj)
-            close ship_figure;
+            close obj.ship_figure;
         end
     end
 end

@@ -6,7 +6,7 @@ clear, clc, close all;
 addpath("..\..\Tools\");
 
 % Run with or without environmental disturbance
-simple_tracking = false;
+simple_tracking = true;
 disturbance_included = true;
 
 if (simple_tracking)

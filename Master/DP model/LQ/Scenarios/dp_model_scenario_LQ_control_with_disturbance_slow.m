@@ -1,4 +1,8 @@
-% Configuration script: LQ optimal control of supply model
+% Configuration script: LQ optimal control using supply model
+% as process and DP model for control and filtering.
+
+% Add seed (meaning of life)
+rng(42,"twister");
 
 dt = 1.0;           % Timestep used in integration
 
@@ -11,9 +15,9 @@ N = ceil(T/dt);     % Number of sample steps
 integration_method = IntegrationMethod.Runge_Kutta_Fourth_Order;
 
 % Output files
-folder = "Results/lq_nonrot_1tunnel_dist";                % Name of folder to store output files
-file_prefix = "lq_nonrot_1tunnel_dist_";                  % Prefix of file names
-workspace_file_name = 'lq_nonrot_1tunnel_dist_data';      % Name of workspace file
+folder = "Results/lq_dp_model_dist";                % Name of folder to store output files
+file_prefix = "lq_dp_model_dist_";                  % Prefix of file names
+workspace_file_name = 'lq_dp_model_dist_data';      % Name of workspace file
 
 store_workspace = true;
 
@@ -28,9 +32,9 @@ for k=1:N+1
     if (time < 100)
         setpoint(:,k) = [0; 0; 0];
     elseif (time < 600)
-        setpoint(:,k) = [10; 5; deg2rad(30)];
+        setpoint(:,k) = [10; 5; deg2rad(26)];
     else
-        setpoint(:,k) = [0; -5; deg2rad(45)];
+        setpoint(:,k) = [-5; -5; deg2rad(225)];
     end
 end
 
@@ -48,8 +52,8 @@ G_lin = eye(n_kal_dim);                           % Process noise matrix
 
 x_aposteriori = x0_est;                           % Aposteriori state estimate
 
-animate_kalman_estimate = true; % Animate kalman estimate
-animation_delay = 0.25;         % Animation speed (in seconds)
+animate_kalman_estimate = true;                   % Animate kalman estimate
+animation_delay = 0.25;                           % Animation speed (in seconds)
 
 %%%%%%%%%%%%%%%%%%%%%
 %%% Process model %%%
@@ -74,40 +78,6 @@ use_noise_in_measurements = false;
 measurement_noise_mean = [0; 0; 0];
 measurement_noise_std = [0.1; 0.1; deg2rad(0.1)];
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Thruster configuration matrix %%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% First column: Main propeller port
-% Second column: Main propeller starboard
-% Third column: Bow tunnel
-main_propeller_y_distance = 3;
-thruster_x_distance = 30;
-T_conf = [1, 1, 0;
-          0, 0, 1;
-          main_propeller_y_distance, -main_propeller_y_distance, thruster_x_distance];
-
-% Define force coefficient matrix
-propeller_port_force_coefficient = 1000;
-propeller_starboard_force_coefficient = propeller_port_force_coefficient;
-bow_thruster_force_coefficient = 500;
-K_force = diag([propeller_port_force_coefficient, propeller_starboard_force_coefficient, ...
-    bow_thruster_force_coefficient]);
-
-% Solving using Lagrange Multiplier, unconstrained
-W_thr = diag([1,1,1]);                             % Weighting matrix
-
-% 1: Port main propeller
-% 2: Stern main propeller
-% 3: Bow tunnel thruster
-thruster_positions = [
-                        -35, -35, 30;      % Placement along surge axis 
-                        -3, 3, 0,          % Placement along sway axis
-                     ];
-
-thruster_names = ["PortMainProp1", "StarboardMainProp2", "BowTunnelThruster"];
-
-thruster_angles = [deg2rad(0), deg2rad(0), deg2rad(90)];
-
 %%%%%%%%%%%%%%%%%%%%%%%
 %%% External forces %%%
 %%%%%%%%%%%%%%%%%%%%%%%
@@ -115,4 +85,4 @@ use_current_force = true;
 use_wave_force = true;
 use_wind_force = true;
 
-run '..\common_external_disturbances.m';
+run 'common_external_disturbances.m';

@@ -49,7 +49,7 @@ G_lin = eye(n_kal_dim);                           % Process noise matrix
 x_aposteriori = x0_est;                           % Aposteriori state estimate
 
 animate_kalman_estimate = true; % Animate kalman estimate
-animation_delay = 0.01;         % Animation speed (in seconds)
+animation_delay = 0.25;         % Animation speed (in seconds)
 
 %%%%%%%%%%%%%%%%%%%%%
 %%% Process model %%%

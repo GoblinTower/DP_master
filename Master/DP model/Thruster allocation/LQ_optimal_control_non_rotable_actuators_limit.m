@@ -12,8 +12,8 @@ if (exist('external_scenario', 'var'))
 else
     clear, clc, close all;
     % Load configuration data
-    run 'Scenarios\Setup_1_tunnel_thruster\supply_scenario_LQ_control_non_rot_act_limit';
-    % run 'Scenarios\Setup_2_tunnel_thrusters\supply_scenario_LQ_control_non_rot_act_limit_2_tunnel';
+    % run 'Scenarios\Setup_1_tunnel_thruster\supply_scenario_LQ_control_non_rot_act_limit';
+    run 'Scenarios\Setup_2_tunnel_thrusters\supply_scenario_LQ_control_non_rot_act_limit_2_tunnel';
 end
 
 % Fetch M and D matrices

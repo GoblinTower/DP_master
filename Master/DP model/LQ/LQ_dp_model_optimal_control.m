@@ -6,7 +6,9 @@ addpath("..\..\Tools\");
 
 % Load configuration data
 % run 'Scenarios\dp_model_scenario_LQ_control_without_disturbance.m';
-run 'Scenarios\dp_model_scenario_LQ_control_with_disturbance.m';
+% run 'Scenarios\dp_model_scenario_LQ_control_with_disturbance.m';
+% run 'Scenarios\dp_model_scenario_LQ_control_with_disturbance_slow.m';
+run 'Scenarios\dp_model_scenario_LQ_control_without_disturbance_slow.m';
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by Thor

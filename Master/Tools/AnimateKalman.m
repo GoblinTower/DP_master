@@ -17,14 +17,14 @@ classdef AnimateKalman < handle
 
         function obj = AnimateKalman()
             % Initialized the figure
-            figure(100);
+            fif = figure('units', 'normalized', 'outerposition', [0 0 1 1], 'DefaultAxesFontSize', 22);
 
             % Position plot
             subplot(1,2,1);
             title('Ship position (north, east)');
             xlabel('East position [m]');
             ylabel('North position [m]');
-            legend();
+            legend('Location', 'northwest');
 
             obj.plot_estimated_position_handle = animatedline('Color','b',...
                 'DisplayName','Estimated position');
@@ -36,9 +36,9 @@ classdef AnimateKalman < handle
             % Vessel heading plot
             subplot(1,2,2);
             title('Vessel heading [°]');
-            xlabel('Time');
+            xlabel('Time [s]');
             ylabel('Vessel heading [°]');
-            legend();
+            legend('Location', 'northwest');
 
             obj.plot_estimated_psi_handle = animatedline('Color','b',...
                 'DisplayName','Estimated heading');
