@@ -22,7 +22,7 @@ classdef AnimateForces < handle
         % 
 
             % Initialized the figure
-            obj.ship_figure = figure(200);
+            obj.ship_figure = figure('DefaultAxesFontSize', 22);
             obj.ship_figure_axes = axes;
 
             % Create ship shap
@@ -65,10 +65,10 @@ classdef AnimateForces < handle
             current_ship = rotate(obj.ship_shape, -rad2deg(heading), [0,0]);
        
             hold on
-            % Forces and momentum
+            % Forces and moment
             plot(obj.ship_figure_axes, current_ship);                                           % Always plot ship
 
-            title(obj.ship_figure_axes, "Forces in surge, sway and yaw due to thrusters")       % Plot title
+            title(obj.ship_figure_axes, "Net forces and moment due to thrusters")               % Plot title
 
             if (force_surge ~= 0)
                 force_surge_shape = polyshape([-breadth/20, breadth/20, breadth/20, -breadth/20], ...
@@ -97,6 +97,10 @@ classdef AnimateForces < handle
             hold off
 
             drawnow;
+        end
+
+        function delete(obj)
+            close obj.ship_figure;
         end
     end
 end

@@ -35,8 +35,8 @@ classdef AnimateThrusters < handle
         %
         
             % Initialized the figure
-            obj.ship_figure = figure(300);
-            
+            obj.ship_figure = figure('DefaultAxesFontSize', 22);
+
             % Ship figure
             obj.ship_figure_axes = subplot(1,2,1);
 
@@ -69,7 +69,7 @@ classdef AnimateThrusters < handle
             end
             obj.thruster_force_handle = tmp;
 
-            legend(obj.thruster_force_axes, tmp);
+            legend(obj.thruster_force_axes, tmp, 'Location', 'northwest');
            
         end 
       
@@ -155,6 +155,10 @@ classdef AnimateThrusters < handle
             for i=1:obj.number_of_thrusters
                 addpoints(obj.thruster_force_handle(i), t, thruster_forces(i));
             end
+        end
+
+        function delete(obj)
+            close obj.ship_figure;
         end
     end
 end
