@@ -9,8 +9,8 @@ addpath("plots\");
 % Select scenario to run
 % scenario = 'none';
 % scenario = 'supply';
-% scenario = 'osv';
-scenario = 'balchen';
+scenario = 'osv';
+% scenario = 'balchen';
 
 % Run with or without environmental disturbance
 disturbance_included = false;
@@ -45,7 +45,7 @@ if (strcmp(scenario, 'supply'))
 
     plot_details.force_surge_exponent = 6;
     plot_details.force_sway_exponent = 6;
-    plot_details.momentum_yaw_exponent = 8;
+    plot_details.momentum_yaw_exponent = 6;
     
     plot_details.kalman_exponent = 5;
     
@@ -118,6 +118,20 @@ elseif (strcmp(scenario, 'osv'))
     
     [iae, tv] = plot_si_osv(lmf, nos, show_setpoints, 20, storage_path, plot_details, show_current_estimate, model_number_environmental);
 
+    % The plot_si_supply function does not work appropriately for TV in the case of OSV. So recalculate
+    % the true values here
+    disp('TV dsr:');
+    tv_osv_dsr = sum(abs(lmf(1).u_generalized),2);
+    disp(tv_osv_dsr);
+
+    disp('TV dsr_e:');
+    tv_osv_dsr_e = sum(abs(lmf(2).u_generalized),2);
+    disp(tv_osv_dsr_e);
+
+    disp('TV pem:');
+    tv_osv_pem = sum(abs(lmf(3).u_generalized),2);
+    disp(tv_osv_pem);
+
 elseif (strcmp(scenario, 'balchen'))
         
     if (disturbance_included)
@@ -148,7 +162,7 @@ elseif (strcmp(scenario, 'balchen'))
 
     plot_details.force_surge_exponent = 6;
     plot_details.force_sway_exponent = 6;
-    plot_details.momentum_yaw_exponent = 8;
+    plot_details.momentum_yaw_exponent = 6;
     
     plot_details.kalman_exponent = 5;
     

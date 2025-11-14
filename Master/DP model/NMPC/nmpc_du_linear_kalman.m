@@ -95,6 +95,8 @@ for i=1:N
     % Store old value of optimal control input for initial guess in next
     % iteration (warm starting)
     u0 = u_sol;
+    
+    diff_u = u_sol(:,2:end) - u_sol(:,1:end-1);
 
     % Get control signal
     u = u_sol(:,1);

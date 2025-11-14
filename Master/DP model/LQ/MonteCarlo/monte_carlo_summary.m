@@ -24,6 +24,9 @@ error_lq_disturbance = zeros(3, number_of_simulation_steps, number_of_simulation
 error_lq_no_disturbance = zeros(3, number_of_simulation_steps, number_of_simulations);
 setpoint_array_common = zeros(3, number_of_simulation_steps, number_of_simulations);
 
+u_lq_disturbance = zeros(3, number_of_simulation_steps-1, number_of_simulations);
+u_lq_no_disturbance = zeros(3, number_of_simulation_steps-1, number_of_simulations);
+
 %%%%%%%%%%%%%%%%%%%%%%
 %%% Setpoint error %%%
 %%%%%%%%%%%%%%%%%%%%%%
@@ -35,10 +38,12 @@ for iteration=1:number_of_simulations
     sim = load(strcat('Workspace\lq_dp_model_dist_data_', num2str(iteration), '.mat'));
     error_lq_disturbance(:,:,iteration) = sim.setpoint(:,1:number_of_simulation_steps) - sim.x_array(1:3,1:number_of_simulation_steps); 
     setpoint_array_common(:,:,iteration) = sim.setpoint(:,1:number_of_simulation_steps);
+    u_lq_disturbance(:,:,iteration) = sim.u_array(:,1:number_of_simulation_steps-1);
 
     % Get data from simulation with no external disturbance
     sim = load(strcat('Workspace\lq_dp_model_no_dist_data_', num2str(iteration), '.mat'));
     error_lq_no_disturbance(:,:,iteration) = sim.setpoint(:,1:number_of_simulation_steps) - sim.x_array(1:3,1:number_of_simulation_steps); 
+    u_lq_no_disturbance(:,:,iteration) = sim.u_array(:,1:number_of_simulation_steps-1);
 end
 
 % Get RMSE
@@ -48,6 +53,10 @@ error_lq_no_disturbance_rmse = squeeze(sqrt(sum(error_lq_no_disturbance.^2,2)/nu
 % Get Integrated Absolute Error (IAE)
 error_lq_disturbance_iae = squeeze(sum(abs(error_lq_disturbance),2));
 error_lq_no_disturbance_iae = squeeze(sum(abs(error_lq_no_disturbance),2));
+
+% Get Total Value (TV)
+tv_lq_disturbance = squeeze(sum(abs(u_lq_disturbance),2));
+tv_lq_no_disturbance = squeeze(sum(abs(u_lq_no_disturbance),2));
 
 % Calculate total change in heading
 heading_changes = squeeze(setpoint_array_common(3, [1, time_of_heading_changes], :));
@@ -159,6 +168,18 @@ disp(diff_rmse);
 disp("Diff IAE: ");
 diff_iae = iae_mean_with_disturbance - iae_mean_no_disturbance;
 disp(diff_iae);
+
+tv_mean_no_disturbance = mean(tv_lq_no_disturbance, 2);
+disp("TV value for LQ optimal control simulations without disturbance: ");
+disp(tv_mean_no_disturbance);
+disp("Total:");
+disp(sum(tv_mean_no_disturbance));
+
+tv_mean_disturbance = mean(tv_lq_disturbance, 2);
+disp("TV value for LQ optimal control simulations with disturbance: ");
+disp(tv_mean_disturbance);
+disp("Total:");
+disp(sum(tv_mean_disturbance));
 
 % Display total heading change
 total_heading_change_array = zeros(1,number_of_simulations);

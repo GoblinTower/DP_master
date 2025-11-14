@@ -25,6 +25,10 @@ error_mpc_r_disturbance = zeros(3, number_of_simulation_steps, number_of_simulat
 error_mpc_lpv_disturbance = zeros(3, number_of_simulation_steps, number_of_simulations);
 setpoint_array_common = zeros(3, number_of_simulation_steps, number_of_simulations);
 
+u_mpc_psi_disturbance = zeros(3, number_of_simulation_steps-1, number_of_simulations);
+u_mpc_r_disturbance = zeros(3, number_of_simulation_steps-1, number_of_simulations);
+u_mpc_lpv_disturbance = zeros(3, number_of_simulation_steps-1, number_of_simulations);
+
 %%%%%%%%%%%%%%%%%%%%%%
 %%% Setpoint error %%%
 %%%%%%%%%%%%%%%%%%%%%%
@@ -36,14 +40,17 @@ for iteration=1:number_of_simulations
     sim = load(strcat('Workspace\mpc_const_psi_du_with_dist_', num2str(iteration), '.mat'));
     error_mpc_psi_disturbance(:,:,iteration) = sim.setpoint(:,1:number_of_simulation_steps) - sim.x_array(1:3,1:number_of_simulation_steps); 
     setpoint_array_common(:,:,iteration) = sim.setpoint(:,1:number_of_simulation_steps);
+    u_mpc_psi_disturbance(:,:,iteration) = sim.u_array(:,1:number_of_simulation_steps-1);
 
     % Get data from constant r MPC
     sim = load(strcat('Workspace\mpc_const_r_du_with_dist_', num2str(iteration), '.mat'));
     error_mpc_r_disturbance(:,:,iteration) = sim.setpoint(:,1:number_of_simulation_steps) - sim.x_array(1:3,1:number_of_simulation_steps); 
+    u_mpc_r_disturbance(:,:,iteration) = sim.u_array(:,1:number_of_simulation_steps-1);
 
     % Get data from constant LPV MPC
     sim = load(strcat('Workspace\mpc_lpv_du_with_dist_', num2str(iteration), '.mat'));
     error_mpc_lpv_disturbance(:,:,iteration) = sim.setpoint(:,1:number_of_simulation_steps) - sim.x_array(1:3,1:number_of_simulation_steps); 
+    u_mpc_lpv_disturbance(:,:,iteration) = sim.u_array(:,1:number_of_simulation_steps-1);
 end
 
 % Get RMSE
@@ -55,6 +62,11 @@ error_mpc_lpv_disturbance_rmse = squeeze(sqrt(sum(error_mpc_lpv_disturbance.^2,2
 error_mpc_psi_disturbance_iae = squeeze(sum(abs(error_mpc_psi_disturbance),2));
 error_mpc_r_disturbance_iae = squeeze(sum(abs(error_mpc_r_disturbance),2));
 error_mpc_lpv_disturbance_iae = squeeze(sum(abs(error_mpc_lpv_disturbance),2));
+
+% Get Total Value (TV)
+tv_u_mpc_psi_disturbance = squeeze(sum(abs(u_mpc_psi_disturbance),2));
+tv_u_mpc_r_disturbance = squeeze(sum(abs(u_mpc_r_disturbance),2));
+tv_u_mpc_lpv_disturbance = squeeze(sum(abs(u_mpc_lpv_disturbance),2));
 
 % Calculate total change in heading
 heading_changes = squeeze(setpoint_array_common(3, [1, time_of_heading_changes], :));
@@ -199,6 +211,24 @@ disp("Total:");
 disp(sum(iae_lpv_mean_disturbance))
 
 save_plot(f1, 'mc_results', 'Results\');
+
+tv_mean_u_mpc_psi_disturbance = mean(tv_u_mpc_psi_disturbance, 2);
+disp("TV const psi: ");
+disp(tv_mean_u_mpc_psi_disturbance);
+disp("Total:");
+disp(sum(tv_mean_u_mpc_psi_disturbance));
+
+tv_mean_u_mpc_r_disturbance = mean(tv_u_mpc_r_disturbance, 2);
+disp("TV const r: ");
+disp(tv_mean_u_mpc_r_disturbance);
+disp("Total:");
+disp(sum(tv_mean_u_mpc_r_disturbance));
+
+tv_mean_u_mpc_lpv_disturbance = mean(tv_u_mpc_lpv_disturbance, 2);
+disp("TV LPV: ");
+disp(tv_mean_u_mpc_lpv_disturbance);
+disp("Total:");
+disp(sum(tv_mean_u_mpc_lpv_disturbance));
 
 % Display total heading change
 total_heading_change_array = zeros(1,number_of_simulations);

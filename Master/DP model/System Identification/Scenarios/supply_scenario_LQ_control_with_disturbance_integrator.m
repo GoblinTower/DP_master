@@ -3,7 +3,7 @@
 % Add seed (meaning og life)
 rng(42,"twister");
 
-dt = 0.05;           % Timestep used in integration
+dt = 0.05;          % Timestep used in integration
 
 T = 1400;           % End time
 N = ceil(T/dt);     % Number of sample steps

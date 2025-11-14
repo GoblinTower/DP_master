@@ -15,13 +15,13 @@ else
     % This section represents code used when running this script directly
     clear, clc, close all;
     % Load configuration data
-    run 'Scenarios\supply_scenario_LQ_control_without_disturbance';
-    % run 'Scenarios\supply_scenario_LQ_control_with_disturbance';
+    % run 'Scenarios\supply_scenario_LQ_control_without_disturbance';
+    run 'Scenarios\supply_scenario_LQ_control_with_disturbance';
 
     % Type of sys_identification
-    % sysid = 'dsr';
+    sysid = 'dsr';
     % sysid = 'dsr_e';
-    sysid = 'pem';
+    % sysid = 'pem';
 end
 
 run_continous_version = false;
@@ -77,8 +77,9 @@ y_meas_array = zeros(3,N+1);            % Measurement array
 y_meas_array(:,1) = y0_meas;            % Storing initial value of measurement 
 
 u_array = zeros(3,N);                   % Control input array
-
 u_prev = zeros(3,1);                    % Previous control signal
+u_generalized = zeros(3,N);             % Generalized force and moment
+
 
 % Initial values
 x_prev = zeros(n_dim_control,1);        % Previus state 
@@ -243,5 +244,5 @@ if (store_workspace)
     if (not(isfolder("Workspace")))
         mkdir("Workspace");
     end
-    save("Workspace/" + workspace_file_name)
+    save("Workspace/" + workspace_file_name);
 end

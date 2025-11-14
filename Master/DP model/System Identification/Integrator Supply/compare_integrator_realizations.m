@@ -24,10 +24,10 @@ load_path = strcat('..\Log\integrator_ssm_supply_mode4');
 model_mode4 = load(load_path);
 y_array_mode4 = compare_against_data(model_mode3, y_array, u_array);
 
-% Mode 1: Run with only as B unknown, A = C = I
-% Mode 2: Run with B and C as unknowns, A = I
+% Mode 1: Run with only as B unknown, A = C = I (strategy 1)
+% Mode 2: Run with B and C as unknowns, A = I   (strategy 3)
 % Mode 3: Run with A, B and C as unknown
-% Mode 4: Run with A and B unkown, A is upper triangular with ones on the
+% Mode 4: Run with A and B unkown, A is upper triangular with ones on the (strategy 2)
 % diagonal
 y_data_array = {y_array_mode1, y_array_mode4, y_array_mode2};
 model_case = {'(strategy 1)', '(strategy 2)', '(strategy 3)'};

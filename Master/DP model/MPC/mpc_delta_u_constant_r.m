@@ -1,5 +1,5 @@
-% Script for implementing and testing model predictive controller (MPC)
-% Runs linear MPC with changing state transition matrix. It is assumed
+% Script for implementing and testing model predictive c
+% Runs linear MPC with changing state transition matrix. It is assumedontroller (MPC)
 % that the yaw velocity is constant for the entire horizon. Thus the yaw
 % when calculating any matrix A(t) is psi(t) = psi(t0) + dpsi/dt(t0)*(t-t0)
 clear, clc, close all;
@@ -10,6 +10,9 @@ addpath("..\..\Tools\");
 % Load configuration data'
 % run 'Scenarios\du_formulation\supply_scenario_mpc_r_const_without_disturbance';
 run 'Scenarios\du_formulation\supply_scenario_mpc_r_const_with_disturbance';
+% run 'Scenarios\du_formulation\supply_scenario_mpc_r_const_with_disturbance_current_adjusted';
+% run 'Scenarios\du_formulation\supply_scenario_mpc_r_const_with_disturbance_current_constant';
+% run 'Scenarios\du_formulation\supply_scenario_mpc_r_const_with_disturbance_alt2';
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by T.I.

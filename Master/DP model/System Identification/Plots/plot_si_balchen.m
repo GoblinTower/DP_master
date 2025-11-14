@@ -71,6 +71,7 @@ for i=1:number_of_simulations
     grid on, grid minor;
     box on;
     ylim('padded');
+    xlim('tight');
     hold off;
 
 end
@@ -90,6 +91,7 @@ for i=1:number_of_simulations
     grid on, grid minor;
     box on;
     ylim('padded');
+    xlim('tight');
     hold off;
 
 end
@@ -109,6 +111,7 @@ for i=1:number_of_simulations
     grid on, grid minor;
     box on;
     ylim('padded');
+    xlim('tight');
     hold off;
 
 end

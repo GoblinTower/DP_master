@@ -130,7 +130,7 @@ for i=1:number_of_simulations
     plot(lmf(i).t_array(1:length_time), lmf(i).x_array(1,1:length_time));
     if (show_setpoints)
         plot(lmf(i).t_array(1:length_time), lmf(i).setpoint(1,1:length_time));
-        legend({'Vessel', 'Setpoint'}, 'Location', 'southeast');
+        % legend({'Vessel', 'Setpoint'}, 'Location', 'southeast');
     end
     grid();
     title(strcat('Position north (', nos(i), ')'));
@@ -151,7 +151,7 @@ for i=1:number_of_simulations
     plot(lmf(i).t_array(1:length_time), lmf(i).x_array(2,1:length_time));
     if (show_setpoints)
         plot(lmf(i).t_array(1:length_time), lmf(i).setpoint(2,1:length_time));
-        legend({'Vessel', 'Setpoint'}, 'Location', 'southeast');
+        % legend({'Vessel', 'Setpoint'}, 'Location', 'southeast');
     end
     grid();
     title(strcat('Position east (', nos(i), ')'));
@@ -172,7 +172,7 @@ for i=1:number_of_simulations
     plot(lmf(i).t_array(1:length_time), rad2deg(lmf(i).x_array(3,1:length_time)));
     if (show_setpoints)
         plot(lmf(i).t_array(1:length_time), rad2deg(lmf(i).setpoint(3,1:length_time)));
-        legend({'Vessel', 'Setpoint'}, 'Location', 'southeast');
+        % legend({'Vessel', 'Setpoint'}, 'Location', 'southeast');
     end
     grid();
     title(strcat('Heading (', nos(i), ')'));
@@ -437,7 +437,7 @@ nexttile;
 hold on;
 plot(lmf(i).t_array(1:length_time), lmf(i).wave_force(3,1:length_time))
 grid();
-title('Wave moment in yaw');
+title('Waves in yaw');
 xlabel('t [s]');
 ylabel('Force in yaw [Nm]');
 ax = gca;
@@ -517,7 +517,7 @@ for i=1:number_of_simulations
     
     iae(:,i) = sum(error(:,:,i),2);
     disp(strcat('IAE for ' + string(nos(i)) + ':'));
-    disp(iae(:,i));
+    disp(fprintf('%.4f\n', iae(:,i)));
 
 end
 
@@ -531,6 +531,5 @@ for i=1:number_of_simulations
     
     tv(:,i) = sum(abs(lmf(i).u_array(:,1:length_time)),2);
     disp('TV for ' + string(nos(i)) + ':');
-    disp(tv(:,i));
-
+    disp(fprintf('%.4f\n', tv(:,i)));
 end

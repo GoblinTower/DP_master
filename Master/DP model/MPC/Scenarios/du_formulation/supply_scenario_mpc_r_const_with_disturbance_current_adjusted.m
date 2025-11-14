@@ -4,7 +4,7 @@
 
 dt = 1.0;           % Timestep used in integration
 
-T = 900;            % End time
+T = 1000;           % End time
 N = ceil(T/dt);     % Number of sample steps
 
 % Select integration method
@@ -13,9 +13,9 @@ N = ceil(T/dt);     % Number of sample steps
 integration_method = IntegrationMethod.Runge_Kutta_Fourth_Order;
 
 % Output files
-folder = "Results/mpc_const_psi_du_without_dist";                 % Name of folder to store output files
-file_prefix = "mpc_const_psi_du_without_dist_";                   % Prefix of file names
-workspace_file_name = "mpc_const_psi_du_without_dist.mat";        % Name of .mat file
+folder = "Results/mpc_const_r_du_with_dist_current_adjusted";                   % Name of folder to store output files
+file_prefix = "mpc_const_r_du_with_dist_current_adjusted_";                     % Prefix of file names
+workspace_file_name = "mpc_const_r_du_with_dist_current_adjusted.mat";          % Name of .mat file
 
 store_workspace = true;                                           % Flag to indicate whether to save workspace to mat file
 
@@ -32,6 +32,7 @@ Q = diag([1e5, 1e5, 1e7]);           % Error weighting matrix
 P = diag([1e-4, 1e-4, 1e-6]);        % Input weighting matrix
 
 % Quadratic programming options
+% options = optimoptions('quadprog', 'Algorithm', 'interior-point-convex', 'display', 'off');
 options = optimoptions('quadprog', 'display', 'off');
 
 % Force and momentum limitations
@@ -51,7 +52,7 @@ for k=1:setpoint_length
     elseif (time < 600)
         setpoint(:,k) = [10; 5; deg2rad(26)];
     else
-        setpoint(:,k) = [-5; -5; deg2rad(-225)];
+        setpoint(:,k) = [-5; -5; deg2rad(225)];
     end
 end
 
@@ -63,7 +64,8 @@ run_kalman_filter = true;
 W = diag([1e2, 1e2, 1e2, 1e2, 1e2, 1e2, 1e12, 1e12, 1e12]);   % Process noise
 V = 10*eye(3);                                                % Measurement noise
 
-x0_est = [0; 0; 0; 0; 0; 0; 0; 0; 0];             % Initial state estimate
+% x0_est = [0; 0; 0; 0; 0; 0; 0; 0; 0];           % Initial state estimate
+x0_est = [0; 0; 0; 0; 0; 0; 1e5; 2e5; 0];         % Initial state estimate, adjusted with real current
 n_kal_dim = size(x0_est,1);                       % Number of states in Kalman filter
 G_lin = eye(n_kal_dim);                           % Process noise matrix
 
@@ -103,8 +105,8 @@ measurement_noise_std = [0.1; 0.1; deg2rad(0.1)];
 %%%%%%%%%%%%%%%%%%%%%%%
 %%% External forces %%%
 %%%%%%%%%%%%%%%%%%%%%%%
-use_current_force = false;
-use_wave_force = false;
-use_wind_force = false;
+use_current_force = true;
+use_wave_force = true;
+use_wind_force = true;
 
 run 'common_external_disturbances.m';

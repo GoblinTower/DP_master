@@ -58,8 +58,8 @@ y_meas_array = zeros(3,N+1);            % Measurement array
 y_meas_array(:,1) = y0_meas;            % Storing initial value of measurement 
 
 u_array = zeros(3,N);                   % Control input array
-
 u_prev = zeros(3,1);                    % Previous control signal
+u_generalized = zeros(3,N);             % Generalized force and moment
 
 % Initial values
 x_prev = zeros(n_dim_control,1);        % Previus state 
@@ -226,5 +226,5 @@ if (store_workspace)
     if (not(isfolder("Workspace")))
         mkdir("Workspace");
     end
-    save("Workspace/" + workspace_file_name)
+    save("Workspace/" + workspace_file_name);
 end

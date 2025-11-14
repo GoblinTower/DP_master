@@ -14,12 +14,12 @@ if (use_du_formulation)
         mpc_const_psi = load('Workspace\mpc_const_psi_du_with_dist.mat');
         mpc_const_r = load('Workspace\mpc_const_r_du_with_dist.mat');
         lpv = load('Workspace\mpc_lpv_du_with_dist.mat');
-        body = load('Workspace\mpc_recalculate_setpoint_du_with_dist.mat');
+        % body = load('Workspace\mpc_recalculate_setpoint_du_with_dist.mat');
     else
         mpc_const_psi = load('Workspace\mpc_const_psi_du_without_dist.mat');
         mpc_const_r = load('Workspace\mpc_const_r_du_without_dist.mat');
         lpv = load('Workspace\mpc_lpv_du_without_dist.mat');
-        body = load('Workspace\mpc_recalculate_setpoint_du_without_dist.mat');
+        % body = load('Workspace\mpc_recalculate_setpoint_du_without_dist.mat');
     end
 else
     if (disturbance_included)
@@ -54,9 +54,9 @@ show_setpoints = true;                                      % Show setpoints in 
 plot_details.path_xlim = [-10,7];
 plot_details.path_ylim = [-10,12];
 
-plot_details.force_surge_exponent = 6;
-plot_details.force_sway_exponent = 6;
-plot_details.momentum_yaw_exponent = 8;
+plot_details.force_surge_exponent = 5;
+plot_details.force_sway_exponent = 5;
+plot_details.momentum_yaw_exponent = 7;
 
 plot_details.kalman_exponent = 4;
 

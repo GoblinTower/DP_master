@@ -1,4 +1,3 @@
-%
 % Script that runs system identification and control based on different
 % vessel models. Intended for saving time and ensuring consistency.
 
@@ -10,26 +9,29 @@ number_of_methods = size(si_methods,2);
 
 external_scenario = 'si_methods';
 
+run_si = false;
+
 %%%%%%%%%%%%%%%%%%%%
 %%% Supply model %%%
 %%%%%%%%%%%%%%%%%%%%
 
 % SI Supply model
-for i=1:number_of_methods
-    clearvars -except si_methods number_of_methods external_scenario i    % First remove previous history
-    clc, close all;                                                       % Clear command prompt and close figures
-    disp(strcat("Running ", si_methods(i), " on supply model"));
-    sysid = cell2mat(si_methods(i));
-    run 'SI Supply\collect_model_data_supply';
+if (run_si)
+    for i=1:number_of_methods
+        clearvars -except si_methods number_of_methods external_scenario i run_si    % First remove previous history
+        clc, close all;                                                              % Clear command prompt and close figures
+        disp(strcat("Running ", si_methods(i), " on supply model"));
+        sysid = cell2mat(si_methods(i));
+        run 'SI Supply\collect_model_data_supply';
+    end
 end
-
 
 %% Run SI Supply model simulations
 
 % Run with disturbance
 run_with_disturbance = true;
 for i=1:number_of_methods
-    clearvars -except si_methods number_of_methods external_scenario i run_with_disturbance                         % First remove previous history
+    clearvars -except si_methods number_of_methods external_scenario i run_with_disturbance run_si                  % First remove previous history
     clc, close all;                                                                                                 % Clear command prompt and close figures
     disp(strcat("Running control on model identified using ", si_methods(i), " with external disturbance"));
     sysid = cell2mat(si_methods(i));
@@ -39,7 +41,7 @@ end
 % Run without disturbance
 run_with_disturbance = false;
 for i=1:number_of_methods
-    clearvars -except si_methods number_of_methods external_scenario i run_with_disturbance                         % First remove previous history
+    clearvars -except si_methods number_of_methods external_scenario i run_with_disturbance run_si                  % First remove previous history
     clc, close all;                                                                                                 % Clear command prompt and close figures
     disp(strcat("Running control on model identified using ", si_methods(i), " without external disturbance"));
     sysid = cell2mat(si_methods(i));
@@ -51,12 +53,14 @@ end
 %%%%%%%%%%%%%%%%
 
 %% SI OSV model
-for i=1:number_of_methods
-    clearvars -except si_methods number_of_methods external_scenario i    % First remove previous history
-    clc, close all;                                                       % Clear command prompt and close figures
-    disp(strcat("Running ", si_methods(i), " on OSV model"));
-    sysid = cell2mat(si_methods(i));
-    run 'SI OSV\collect_model_data_osv';
+if (run_si)
+    for i=1:number_of_methods
+        clearvars -except si_methods number_of_methods external_scenario i run_si    % First remove previous history
+        clc, close all;                                                              % Clear command prompt and close figures
+        disp(strcat("Running ", si_methods(i), " on OSV model"));
+        sysid = cell2mat(si_methods(i));
+        run 'SI OSV\collect_model_data_osv';
+    end
 end
 
 %% Run SI OSV model simulations
@@ -64,7 +68,7 @@ end
 % Run with disturbance
 run_with_disturbance = true;
 for i=1:number_of_methods
-    clearvars -except si_methods number_of_methods external_scenario i run_with_disturbance                         % First remove previous history
+    clearvars -except si_methods number_of_methods external_scenario i run_with_disturbance run_si                  % First remove previous history
     clc, close all;                                                                                                 % Clear command prompt and close figures
     disp(strcat("Running control on model identified using ", si_methods(i), " with external disturbance"));
     sysid = cell2mat(si_methods(i));
@@ -74,7 +78,7 @@ end
 % Run without disturbance
 run_with_disturbance = false;
 for i=1:number_of_methods
-    clearvars -except si_methods number_of_methods external_scenario i run_with_disturbance                         % First remove previous history
+    clearvars -except si_methods number_of_methods external_scenario i run_with_disturbance run_si                  % First remove previous history
     clc, close all;                                                                                                 % Clear command prompt and close figures
     disp(strcat("Running control on model identified using ", si_methods(i), " without external disturbance"));
     sysid = cell2mat(si_methods(i));
@@ -86,12 +90,14 @@ end
 %%%%%%%%%%%%%%%%%%%%%
 
 %% SI Balchen model
-for i=1:number_of_methods
-    clearvars -except si_methods number_of_methods external_scenario i    % First remove previous history
-    clc, close all;                                                       % Clear command prompt and close figures
-    disp(strcat("Running ", si_methods(i), " on Balchen model"));
-    sysid = cell2mat(si_methods(i));
-    run 'SI Balchen\collect_model_data_balchen';
+if (run_si)
+    for i=1:number_of_methods
+        clearvars -except si_methods number_of_methods external_scenario i run_si    % First remove previous history
+        clc, close all;                                                              % Clear command prompt and close figures
+        disp(strcat("Running ", si_methods(i), " on Balchen model"));
+        sysid = cell2mat(si_methods(i));
+        run 'SI Balchen\collect_model_data_balchen';
+    end
 end
 
 %% Run SI Balchen model simulations
@@ -99,8 +105,8 @@ end
 % Run with disturbance
 run_with_disturbance = true;
 for i=1:number_of_methods
-    clearvars -except si_methods number_of_methods external_scenario i run_with_disturbance                         % First remove previous history
-    clc, close all;                                                                                                 % Clear command prompt and close figures
+    clearvars -except si_methods number_of_methods external_scenario i run_with_disturbance run_si                        % First remove previous history
+    clc, close all;                                                                                                       % Clear command prompt and close figures
     disp(strcat("Running control on model identified using ", si_methods(i), " with external disturbance"));
     sysid = cell2mat(si_methods(i));
     run 'LQ_optimal_control_balchen';
@@ -109,7 +115,7 @@ end
 % Run without disturbance
 run_with_disturbance = false;
 for i=1:number_of_methods
-    clearvars -except si_methods number_of_methods external_scenario i run_with_disturbance                         % First remove previous history
+    clearvars -except si_methods number_of_methods external_scenario i run_with_disturbance run_si                  % First remove previous history
     clc, close all;                                                                                                 % Clear command prompt and close figures
     disp(strcat("Running control on model identified using ", si_methods(i), " without external disturbance"));
     sysid = cell2mat(si_methods(i));

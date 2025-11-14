@@ -13,7 +13,7 @@ supply_str2 = load('Workspace\supply_int_mode4_no_dist.mat');
 % Strategy 3
 supply_str3 = load('Workspace\supply_int_mode2_no_dist.mat');
     
-run_strategy = 3;
+run_strategy = 2;
 
 if (run_strategy == 2)
     lmf = [supply_str2];                 % Shortcut for List of .Mat Files

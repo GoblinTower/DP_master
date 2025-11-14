@@ -24,9 +24,11 @@ store_workspace = true;                                  % Flag to indicate whet
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
 horizon_length = 20;                 % Prediction horizon length
 
-% Q = diag([5e8, 5e8, 5e8]);           % Error weighting matrix
-% P = diag([1e-4, 1e-4, 1e-6]);        % Input weighting matrix
-Q = diag([1e8, 1e8, 5e8]);           % Error weighting matrix
+% Q = diag([5e8, 5e8, 5e8]);         % Error weighting matrix
+% P = diag([1e-4, 1e-4, 1e-6]);      % Input weighting matrix
+% Q = diag([1e8, 1e8, 5e8]);         % Error weighting matrix
+% P = diag([1e-4, 1e-4, 1e-6]);      % Input weighting matrix
+Q = diag([1e5, 1e5, 1e7]);           % Error weighting matrix
 P = diag([1e-4, 1e-4, 1e-6]);        % Input weighting matrix
 
 % Quadratic programming options

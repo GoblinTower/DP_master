@@ -1,26 +1,23 @@
-% Script for implementing and testing model predictive controller (MPC)
-% using LPV (Linear Parameter Varying formulation).
+% Nonlinear MPC applied to supply model.
+% Two models can be used in the model based comparison in MPC:
+% This script uses a linear  Kalman filter (assuming vessel heading is known).
+% It is assumed that ship is exposed to external forces.
 clear, clc, close all;
 
 addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data
-% run 'Scenarios\du_formulation\supply_scenario_mpc_lpv_without_disturbance';
-run 'Scenarios\du_formulation\supply_scenario_mpc_lpv_with_disturbance';
-% run 'Scenarios\du_formulation\supply_scenario_mpc_lpv_with_disturbance_current_adjusted';
-
+% run 'Scenarios\supply_scenario_nmpc_du_without_dist';
+run 'Scenarios\supply_scenario_nmpc_du_with_dist';
 
 % Fetch M and D matrices
-% See Identification of dynamically positioned ship paper written by T.I.
-% Fossen et al (1995).
+% See Identification of dynamically positioned ship paper written by Thor
+% Inge Fossen et al (1995).
 [~, ~, M, D] = supply();
 
-% Initial guess for the MPC optimization problem
-z0 = zeros(horizon_length*(2*r_dim + n_kal_dim + 2*m_dim),1);
-
 % Preallocate arrays
-t_array = zeros(1,N+1);                 % Time array
+t_array = zeros(1, N+1);                % Time array
 
 wind_force_array = zeros(3,N);          % Wind force array relative to BODY coordinate frame
 wave_force_array = zeros(3,N);          % Wave force array relative to BODY coordinate frame
@@ -35,8 +32,7 @@ x_est_array(:,1) = x0_est;              % Storing initial assumed value of state
 y_meas_array = zeros(3,N+1);            % Measurement array
 y_meas_array(:,1) = y0_meas;            % Storing initial value of measurement 
 
-u_array = zeros(r_dim,N);               % Control input array
-u_prev = zeros(r_dim,N);                % Previous control input
+u_array = zeros(3,N);                   % Control input array
 
 % Initial values
 x = x0;                                 % Initial real state 
@@ -51,21 +47,16 @@ if (animate_kalman_estimate)
 end
 
 % Store Kalman gain
-K_array = zeros(n_kal_dim*3,N);         % Storing Kalman filter gain
+K_array = zeros(9*3,N);                 % Storing Kalman filter gain
 
 for i=1:N
 
     % Get vessel heading
     psi = y_meas(3);
 
-    [A_lin, B_lin, F_lin, C_lin] = dp_fossen_discrete_matrices(M, D, psi, dt, false);
-
-    %%%%%%%%%%%%%%%%%%%%%%%
-    %%% External forces %%%
-    %%%%%%%%%%%%%%%%%%%%%%%
     % Get wind forces and momentum
     % The actual wind forces will depend on the real ship position, hence
-    % the state variables from the 'real' process is used.
+    % we use the state variables from the 'real' process.
     wind_force = wind_force_calc(wind_abs(i), wind_beta(i), x(3), x(4), x(5), rho, Af, Al, L, Cx, Cy, Cn);
     if (use_wind_force)
         wind_force_array(:,i) = wind_force;
@@ -89,43 +80,34 @@ for i=1:N
     %%% Calculate control signal u %%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     ref = setpoint(:,i:(i+horizon_length-1));
-    ref = ref(:);                               % Must be a column vector
-               
-    % Force and momentum limitations
-    if (use_force_limitation)
-        if (i==1)
-            u_minus_1 = u_array(:,i);
-        else
-            u_minus_1 = u_array(:,i-1);
-        end
-        [Ai, bi] = calculate_force_inequality_matrix(horizon_length, u_minus_1, n_kal_dim, m_dim, r_dim, max_inputs, max_delta_u);
+
+    % Solve non-linear optimization problem
+    if (run_kalman_filter)
+        % Use state from Kalman filter
+        u_sol = fmincon(@(u) non_linear_objective_du_function(u, tau, ref, M, D, P, Q, x_est, u0(:,1), horizon_length, dt, 1), u0, [], [], [], [], [], [], @(u) grouping_du(u, groups, u0(:,1)), options);'
     else
-        Ai = []; 
-        bi = [];
+        % Use real state (assumed known, perfect information)
+        % b is unknown, and hence set to zero
+        x_extended = [x; 0; 0; 0];
+        u_sol = fmincon(@(u) non_linear_objective_du_function(u, tau, ref, M, D, P, Q, x_extended, u0(:,1), horizon_length, dt, 1), u0, [], [], [], [], [], [], @(u) grouping_du(u, groups, u0(:,1)), options);
     end
 
-    % Solve quadratic optimization problem
-    [H, c, Ae, be] = calculate_lpv_mpc_delta_u_dist(P, Q, A_lin, B_lin, C_lin, F_lin, tau, x_est, u_prev, horizon_length, ref, dt, M, D);
+    diff_u = [u_sol(:,1) - u0(:,1), u_sol(:,2:end) - u_sol(:,1:end-1)];
 
-    % Optimization solver
-    z = quadprog(H, c, Ai, bi, Ae, be, [], [], z0, options);
-    
-    % Store previous value for warm starting
-    z0 = z;
-
-    % Store array for use in next MPC run (LPV)
-    u_prev = reshape(z(1:r_dim*horizon_length), 3, []);
+    % Store old value of optimal control input for initial guess in next
+    % iteration (warm starting)
+    u0 = u_sol;
 
     % Get control signal
-    u = z(1:r_dim);
+    u = u_sol(:,1);
 
-    %%%%%%%%%%%%%%%%%%%%
-    %%% Update model %%%
-    %%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%% Update model (Real process) %%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     switch (integration_method)
         case (IntegrationMethod.Forward_Euler)
             % Forward Euler
-            xdot = supply_model(t, x, u, M, D, wind_force_array(:,i), wave_force_array(:,i), current_force_array(:,i));
+            xdot = supply_model(t, x, u, M, D, wind_force_array(:,i), wave_force_array(:,i), current_force_array(:,i), t, x, dt);
             x = x + xdot*dt;
 
         case (IntegrationMethod.Runge_Kutta_Fourth_Order)
@@ -134,20 +116,19 @@ for i=1:N
     end
 
     % Measurement with added noise
-    % This is the measurement for timestep k+1
     if (use_noise_in_measurements)
         y_meas = x(1:3) + normrnd(measurement_noise_mean, measurement_noise_std, 3, 1);
     else
         y_meas = x(1:3);
     end
 
-    % Update measurement
-    y_meas_array(:,i+1) = y_meas;
-
     %%%%%%%%%%%%%%%%%%%%%%%%%%
     %%% Update Kalman gain %%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%
     if (run_kalman_filter)
+
+        % Calculate discrete dp model matrices
+        [A_lin, B_lin, F_lin, C_lin] = dp_fossen_discrete_matrices(M, D, psi, dt, false);
 
         % Get Kalman gain from inbuilt MATLAB function dlqe
         [K,~,~,~] = dlqe(A_lin, G_lin, C_lin, W, V);
@@ -163,25 +144,25 @@ for i=1:N
         % Store data Kalman gain
         K_array(:,i) = K(:);
 
-    else
-        % Use state process value
-        x_est = [x; 0; 0; 0];
     end
 
     % Update time
     t = t + dt;
-    
+
     % Store data
     t_array(i+1) = t;
     x_array(:,i+1) = x;
-    x_est_array(:,i+1) = x_est; 
+    x_est_array(:,i+1) = x_est;
+    y_meas_array(:,i+1) = y_meas;
     u_array(:,i) = u;
 
     % Output data
     disp(['Current time: ', num2str(t)]);
     disp(['Integrator term : ', 'b(1): ', num2str(x_est(7)), ' b(2): ', num2str(x_est(8)), ...
         ' b(3): ', num2str(x_est(9))]);
-    
+    disp(['Current force: ', 'North: ', num2str(current_force(1,i)), ' East: ', num2str(current_force(2,i)), ...
+        ' Yaw: ', num2str(current_force(3,i))]);
+
     % Update animated positon plot
     if (animate_kalman_estimate)
         animate_kalman.UpdatePlot(t_array(i), x_est_array(1,i), x_est_array(2,i), x_est_array(3,i),...
@@ -190,11 +171,11 @@ for i=1:N
         
         pause(animation_delay);
     end
-
+    
 end
 
 % Plot data
-plot_supply_lpv_mpc(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true, folder, file_prefix);
+plot_supply_nmpc(t_array, x_array, x_est_array, K_array, u_array, wind_abs, wind_beta, wind_force_array, current_force, wave_force, setpoint, true, folder, file_prefix);
 
 % Store workspace
 if (store_workspace)
@@ -202,6 +183,5 @@ if (store_workspace)
     if (not(isfolder("Workspace")))
         mkdir("Workspace");
     end
-    save("Workspace/" + workspace_file_name, "x_array", "t_array", "u_array", "setpoint", "K_array", "wind_abs", "wind_beta", "wind_force_array", ...
-        "current_force", "wave_force", "x_est_array");
+    save("Workspace/" + workspace_file_name);
 end

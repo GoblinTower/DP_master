@@ -6,7 +6,7 @@ clear, clc, close all;
 addpath("..\..\Tools\");
 
 % Run with or without environmental disturbance
-simple_tracking = true;
+simple_tracking = false;
 disturbance_included = true;
 
 if (simple_tracking)
@@ -54,9 +54,13 @@ else
     plot_details.path_ylim = [-30,50];
 end
 
+% plot_details.force_surge_exponent = 6;
+% plot_details.force_sway_exponent = 6;
+% plot_details.momentum_yaw_exponent = 7;
+
 plot_details.force_surge_exponent = 5;
 plot_details.force_sway_exponent = 5;
-plot_details.momentum_yaw_exponent = 6;
+plot_details.momentum_yaw_exponent = 7;
 
 plot_details.kalman_exponent = 5;
 

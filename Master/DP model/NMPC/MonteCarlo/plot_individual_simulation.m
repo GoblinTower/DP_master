@@ -5,7 +5,7 @@ clear, clc, close all;
 addpath("..\..\Tools\");
 
 % Select simulation
-load_simulation_number = 12;
+load_simulation_number = 3;
 
 % Load simulation
 sim = load(strcat('Workspace\nmpc_du_dist_data_', num2str(load_simulation_number), '.mat'));

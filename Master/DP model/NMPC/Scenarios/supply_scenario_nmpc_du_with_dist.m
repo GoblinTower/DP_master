@@ -34,6 +34,10 @@ groups = [2,8,10];                   % Grouping
 % P = 1.0*diag([1, 1, 0.00001]);       % Input weighting matrix
 % Q = diag([1e11, 1e11, 1e12]);        % Error weighting matrix
 % P = 1.0*diag([1, 1, 1e-4]);          % Input weighting matrix
+% Q = diag([5e8, 5e8, 1e9]);           % Error weighting matrix
+% P = diag([1e-4, 1e-4, 1e-6]);        % Input weighting matrix
+% Q = diag([1e6, 1e6, 1e8]);           % Error weighting matrix
+% P = diag([1e-4, 1e-4, 1e-6]);        % Input weighting matrix
 Q = diag([5e8, 5e8, 1e9]);           % Error weighting matrix
 P = diag([1e-4, 1e-4, 1e-6]);        % Input weighting matrix
 

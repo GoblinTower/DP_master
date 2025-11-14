@@ -9,7 +9,7 @@ Bc = [zeros(3,3); inv(M); zeros(3,3)];
 % Non-linear state transition matrix
 rotation = rotation_matrix(x(3));
 Ac = [
-    zeros(3,3), rotation, zeros(3,3); 
+    zeros(3,3), rotation, zeros(3,3);
     zeros(3,3), -inv(M)*D, inv(M)*rotation'; 
     zeros(3,3), zeros(3,3), zeros(3,3)
 ];

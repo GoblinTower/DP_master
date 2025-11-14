@@ -519,7 +519,7 @@ for i=1:number_of_simulations
     
     iae(:,i) = sum(error(:,:,i),2);
     disp(strcat('IAE for ' + string(nos(i)) + ':'));
-    disp(iae(:,i));
+    disp(fprintf('%.4f\n', iae(:,i)));
 
 end
 
@@ -533,6 +533,6 @@ for i=1:number_of_simulations
     
     tv(:,i) = sum(abs(lmf(i).u_array(:,1:length_time)),2);
     disp('TV for ' + string(nos(i)) + ':');
-    disp(tv(:,i));
+    disp(fprintf('%.4f\n', tv(:,i)));
 
 end

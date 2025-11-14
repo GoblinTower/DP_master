@@ -137,7 +137,6 @@ for i=1:number_of_simulations
     ylabel('North, x^n [m]');
     grid on, grid minor;
     box on;
-    xlim('padded');
     ylim('padded');
     hold off;
 

@@ -49,7 +49,7 @@ folder = 'Snapshots';
 filename = 'Lagrange_2_tun';
 
 number_of_time_samples = length(time_array);
- 
+
 fig = plot_thrusters(sim, time_array, font_size, 70, 8, scale_forces, scale_surge, scale_sway, scale_momentum);
 save_plot(fig, filename, folder);
 
@@ -113,9 +113,9 @@ if (pause_between_plotting)
 end
 
 close(fig), close(fig2); %, clearvars -except time_array font_size scale_forces scale_surge scale_sway scale_momentum pause_between_plotting
-%%%%%%%%%%%%%%%%
-%%% Azimuth %%%%
-%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%
+%% Azimuth %%%%
+%%%%%%%%%%%%%%%
 % Load data
 sim = load('Workspace\lq_azimuth_dist_data.mat');  
 
@@ -125,7 +125,8 @@ filename = 'Azimuth';
 
 number_of_time_samples = length(time_array);
 
-fig = plot_thrusters(sim, time_array, font_size, 70, 8, scale_forces, scale_surge, scale_sway, scale_momentum);
+azi = [3,4];
+fig = plot_thrusters_with_azimuths(sim, time_array, font_size, 70, 8, scale_forces, scale_surge, scale_sway, scale_momentum, azi);
 save_plot(fig, filename, folder);
 
 fig2 = plot_azimuth_setup(sim, 20);
@@ -203,7 +204,8 @@ function fig = plot_azimuth_setup(ws, font_size)
     nexttile;
     hold on;
     for i=1:number_of_angles
-        plot(ws.t_array(1:length), rad2deg(convert_angle(ws.angle_array(i,1:length))));
+        % plot(ws.t_array(1:length), rad2deg(convert_angle(ws.angle_array(i,1:length))));
+        plot(ws.t_array(1:length), rad2deg(ws.angle_array(i,1:length)));
     end
     grid();
     title('Thruster angles');

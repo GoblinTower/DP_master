@@ -22,6 +22,7 @@ number_of_simulation_steps = min(size(t_array,2), size(x_array,2)); %, size(setp
 % Preallocate arrays:
 error_nmpc_disturbance = zeros(3, number_of_simulation_steps, number_of_simulations);
 setpoint_array_common = zeros(3, number_of_simulation_steps, number_of_simulations);
+u_nmpc_disturbance = zeros(3, number_of_simulation_steps-1, number_of_simulations);
 
 %%%%%%%%%%%%%%%%%%%%%%
 %%% Setpoint error %%%
@@ -34,6 +35,7 @@ for iteration=1:number_of_simulations
     sim = load(strcat('Workspace\nmpc_du_dist_data_', num2str(iteration), '.mat'));
     error_nmpc_disturbance(:,:,iteration) = sim.setpoint(:,1:number_of_simulation_steps) - sim.x_array(1:3,1:number_of_simulation_steps); 
     setpoint_array_common(:,:,iteration) = sim.setpoint(:,1:number_of_simulation_steps);
+    u_nmpc_disturbance(:,:,iteration) = sim.u_array(:,1:number_of_simulation_steps-1);
 end
 
 % Get RMSE
@@ -41,6 +43,9 @@ error_nmpc_disturbance_rmse = squeeze(sqrt(sum(error_nmpc_disturbance.^2,2)/numb
 
 % Get Integrated Absolute Error (IAE)
 error_nmpc_disturbance_iae = squeeze(sum(abs(error_nmpc_disturbance),2));
+
+% Get Total Value (TV)
+tv_u_nmpc_disturbance = squeeze(sum(abs(u_nmpc_disturbance),2));
 
 % Calculate total change in heading
 heading_changes = squeeze(setpoint_array_common(3, [1, time_of_heading_changes], :));
@@ -58,7 +63,7 @@ plot(error_nmpc_disturbance_rmse(1,:));
 plot(error_nmpc_disturbance_rmse(2,:));
 plot(error_nmpc_disturbance_rmse(3,:));
 grid();
-title('Error in NMPC with disturbances');
+title('RMSE in NMPC');
 xlabel('Simulation number');
 ylabel('RMSE');
 legend({'Position north', 'Postion east', 'Yaw'}, 'Location', 'northeast');
@@ -79,7 +84,7 @@ plot(error_nmpc_disturbance_iae(1,:));
 plot(error_nmpc_disturbance_iae(2,:));
 plot(error_nmpc_disturbance_iae(3,:));
 grid();
-title('Error in NMPC with disturbances');
+title('IAE in NMPC');
 xlabel('Simulation number');
 ylabel('IAE');
 legend({'Position north', 'Postion east', 'Yaw'}, 'Location', 'northeast');
@@ -116,6 +121,12 @@ box on;
 hold off;
 
 save_plot(f2, 'mc_results_heading_change', 'Results\');
+
+tv_mean_u_nmpc_disturbance = mean(tv_u_nmpc_disturbance, 2);
+disp("TV NMPC: ");
+disp(tv_mean_u_nmpc_disturbance);
+disp("Total:");
+disp(sum(tv_mean_u_nmpc_disturbance));
 
 function diff = get_smallest_angle_differences(angle_array)
     % Assumes input is in radians

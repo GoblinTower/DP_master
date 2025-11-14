@@ -2,7 +2,7 @@
 %%% using PRBS (PseudoRandom Binary Sequence)
 
 dt = 0.1;           % Timestep used in integration
-% T = 200;            % End time
+% T = 200;          % End time
 T = 50;             % End time
 N = ceil(T/dt);     % Number of sample steps
 

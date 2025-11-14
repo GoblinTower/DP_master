@@ -1,4 +1,4 @@
-function [c,ceq] = grouping(u, groups)
+function [c,ceq] = grouping_du(u, groups, um1)
     
 r = size(u,1);          % Number of input variables
 h = size(u,2);          % Horizon
@@ -8,6 +8,9 @@ ng = length(groups);    % Number of groups
 if (h ~= sum(groups))
     error('The group sizes does not match the input length')
 end
+
+% First convert u to delta u:
+delta_u = [u(:,1) - um1, u(:,2:end) - u(:,1:end-1)];
 
 % Inequality constraints
 c = 0;
@@ -25,7 +28,7 @@ for i = 1:length(groups)
         current_index = current_index + 1;
         ceq_index = ceq_index + r;
     elseif (g > 1)
-        diff = u(:,current_index + 1:current_index + g - 1) - u(:,current_index:current_index + g - 2);
+        diff = delta_u(:,current_index + 1:current_index + g - 1) - delta_u(:,current_index:current_index + g - 2);
         ceq(ceq_index:ceq_index + (g-1)*r - 1) = diff(:);
         current_index = current_index + g;
         ceq_index = ceq_index + (g-1)*r;

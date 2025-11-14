@@ -107,7 +107,7 @@ alpha_diff_max = [deg2rad(10); deg2rad(10)];
 W_thr = diag([1, 1, 1, 1]);
 
 % Slack variable weight (punish deviation between requested and actual force)
-Q_thr = diag([1e8, 1e8, 1e8]);
+Q_thr = diag([1e8,  1e8, 1e8]);
 
 % Azimuth angle change weight
 Omega_thr = diag([1, 1]);

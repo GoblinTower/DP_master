@@ -5,10 +5,11 @@ addpath("Plots\");
 addpath("..\..\Tools\");
 
 % Load configuration data
-% run 'Scenarios\dp_model_scenario_LQ_control_without_disturbance.m';
+run 'Scenarios\dp_model_scenario_LQ_control_without_disturbance.m';
 % run 'Scenarios\dp_model_scenario_LQ_control_with_disturbance.m';
 % run 'Scenarios\dp_model_scenario_LQ_control_with_disturbance_slow.m';
-run 'Scenarios\dp_model_scenario_LQ_control_without_disturbance_slow.m';
+% run 'Scenarios\dp_model_scenario_LQ_control_without_disturbance_slow.m';
+% run 'Scenarios\dp_model_scenario_LQ_control_with_disturbance_alt2.m';
 
 % Fetch M and D matrices
 % See Identification of dynamically positioned ship paper written by Thor
@@ -113,6 +114,7 @@ for i=1:N
         case (IntegrationMethod.Runge_Kutta_Fourth_Order)
             % Runge-Kutta 4th order
             [~, x] = runge_kutta_4(@(t, x) supply_model(t, x, u, M, D, wind_force_array(:,i), wave_force_array(:,i), current_force_array(:,i)), t, x, dt);
+            % [xdot, ~, ~, ~] = supply(x, wind_force_array(:,i) + wave_force_array(:,i) + current_force_array(:,i) + u);
     end
 
     % Measurement with added noise

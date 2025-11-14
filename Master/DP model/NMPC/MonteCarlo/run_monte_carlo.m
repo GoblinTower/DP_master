@@ -2,7 +2,7 @@
 % All simulations are run with external disturbance (weather conditions)
 clear, clc, close all;
 
-start_iteration = 65;
+start_iteration = 58;
 number_of_iterations = 100;
 
 external_scenario = 'mc_nmpc_control';

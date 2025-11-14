@@ -222,5 +222,5 @@ if (store_workspace)
     if (not(isfolder("Workspace")))
         mkdir("Workspace");
     end
-    save("Workspace/" + workspace_file_name)
+    save("Workspace/" + workspace_file_name);
 end

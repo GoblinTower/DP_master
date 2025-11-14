@@ -5,7 +5,7 @@ rng(42,"twister");
 
 dt = 0.3;           % Timestep used in integration
 
-T = 1200;           % End time
+T = 1000;           % End time
 N = ceil(T/dt);     % Number of sample steps
 
 n_dim_control = 9;

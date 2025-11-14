@@ -16,19 +16,39 @@ else
     clear, clc, close all;
     % Load configuration data
     % run 'Scenarios\supply_scenario_LQ_control_without_disturbance_integrator';
-    run 'Scenarios\supply_scenario_LQ_control_without_disturbance_integrator_identity';
+    run 'Scenarios\supply_scenario_LQ_control_without_disturbance_integrator';
 
-    % Type of sys_identification
-    % sysid = 'int_mode1';
-    % sysid = 'int_mode2';
-    % sysid = 'int_mode3';
-    sysid = 'int_mode4';
+    % Mode 1: Run with only as B unknown, A = C = I
+    % Mode 2: Run with B and C as unknowns, A = I
+    % Mode 3: Run with A, B and C as unknown
+    % Mode 4: Run with A and B unknown, A is upper triangular with ones
+    % on the diagonal
+    simulation_mode = 2;
 
-    % Create model using si using integrator design
-    % load_path = 'Log\integrator_ssm_supply_mode1';
-    % load_path = 'Log\integrator_ssm_supply_mode2';
-    % load_path = 'Log\integrator_ssm_supply_mode3';
-    load_path = 'Log\integrator_ssm_supply_mode4';
+    if (simulation_mode == 1)
+        sysid = 'int_mode1';
+        load_path = 'Log\integrator_ssm_supply_mode1';
+        % Q = diag([1e9, 1e9, 1e11]);                       % State weighting matrix
+        Q = diag([1e7, 1e7, 1e9]);                          % State weighting matrix
+
+    elseif (simulation_mode == 2)
+        sysid = 'int_mode2';
+        load_path = 'Log\integrator_ssm_supply_mode2';
+        Q = diag([1e9, 1e9, 1e11]);                         % State weighting matrix
+
+    elseif (simulation_mode == 3)
+        exit();                                             % Do not use this model
+        sysid = 'int_mode3';
+        load_path = 'Log\integrator_ssm_supply_mode3';
+        Q = diag([1e9, 1e9, 1e11]);                         % State weighting matrix
+        % Q = diag([1e7, 1e7, 1e9]);                        % State weighting matrix
+
+    elseif (simulation_mode == 4)
+        % sysid = 'int_mode4';
+        % load_path = 'Log\integrator_ssm_supply_mode4';
+        % % Q = diag([1e9, 1e9, 1e11]);                       % State weighting matrix
+        % Q = diag([1e7, 1e7, 1e9]);                          % State weighting matrix
+    end
 
 end
 
@@ -97,7 +117,7 @@ for i=1:N
     
     % Calculate discrete supply model matrices
 
-    [A_lin, B_lin, C_lin] = dp_model_discrete_matrices_si_identity(A_si, B_si, C_si, psi, dt);
+    [A_lin, B_lin, C_lin] = dp_model_discrete_matrices_si(A_si, B_si, C_si, psi, dt);
 
     % Calculate LQ gain on deviation form
     [G, G1, G2, A_dev, B_dev, C_dev] = calculate_lq_deviation_gain(A_lin, B_lin, C_lin, Q, P);
@@ -169,7 +189,7 @@ for i=1:N
     if (run_kalman_filter)
 
         % Calculate discrete dp model matrices
-        [A_lin, B_lin, F_lin, C_lin] = dp_model_discrete_matrices_si_int_identity(A_si, B_si, C_si, psi, dt);
+        [A_lin, B_lin, F_lin, C_lin] = dp_model_discrete_matrices_si_int(A_si, B_si, C_si, psi, dt);
 
         % Get Kalman gain from inbuilt MATLAB function dlqe
         [K,~,~,~] = dlqe(A_lin, G_lin, C_lin, W, V);
@@ -204,8 +224,8 @@ for i=1:N
     if (~exist('external_scenario', 'var'))
         % Output data
         disp(['Current time: ', num2str(t)]);
-        disp(['Integrator term : ', 'b(1): ', num2str(x_est(7)), ' b(2): ', num2str(x_est(8)), ...
-            ' b(3): ', num2str(x_est(9))]);
+        disp(['Integrator term : ', 'b(1): ', num2str(x_est(10)), ' b(2): ', num2str(x_est(11)), ...
+            ' b(3): ', num2str(x_est(12))]);
     
         % Update animated positon plot
         if (animate_kalman_estimate)

@@ -7,8 +7,8 @@ addpath("..\..\Tools\");
 number_of_simulations = 100;
 
 % Select data
-% folder = 'Monte_Carlo';
-folder = 'Monte_Carlo_Reduction';
+folder = 'Monte_Carlo';
+% folder = 'Monte_Carlo_Reduction';
 
 % Fetch data from first simulation, should be the same for all
 sim1 = load(strcat('Workspace\', folder, '\nmpc_mc_green_dp_dist_data_1.mat'));
@@ -60,9 +60,9 @@ hold on;
 plot(u_total_green(1,:), 'r*');
 plot(u_total_no_green(1,:), 'k*');
 grid();
-title('Integrated absolute value of force in surge');
+title('Total value of force in surge');
 xlabel('Simulation number');
-ylabel('Time [s]');
+ylabel('TV');
 legend({'GreenDP', 'Normal DP'}, 'Location', 'northeast');
 grid on, grid minor;
 box on;
@@ -73,9 +73,9 @@ hold on;
 plot(u_total_green(2,:), 'r*');
 plot(u_total_no_green(2,:), 'k*');
 grid();
-title('Integrated absolute value of force in sway');
+title('Total value of force in sway');
 xlabel('Simulation number');
-ylabel('Time [s]');
+ylabel('TV');
 legend({'GreenDP', 'Normal DP'}, 'Location', 'northeast');
 grid on, grid minor;
 box on;
@@ -86,9 +86,9 @@ hold on;
 plot(u_total_green(3,:), 'r*');
 plot(u_total_no_green(3,:), 'k*');
 grid();
-title('Integrated absolute value of moment in yaw');
+title('Total value of moment in yaw');
 xlabel('Simulation number');
-ylabel('Time [s]');
+ylabel('TV');
 legend({'GreenDP', 'Normal DP'}, 'Location', 'northeast');
 grid on, grid minor;
 box on;
