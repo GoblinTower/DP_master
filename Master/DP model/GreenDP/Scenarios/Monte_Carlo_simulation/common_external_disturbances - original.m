@@ -10,7 +10,7 @@ rng(rand_seed,"twister");
 % Current
 current_variance = [5e3; 5e3; 5e3];
 current_start_values = [0; 0; 0];
- = 0.9;
+current_reduction_factor = 0.9;
 
 current_force = zeros(3,N);
 % Gaussian random walk
