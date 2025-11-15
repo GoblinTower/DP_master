@@ -20,18 +20,24 @@ The thesis explores:
 
 ## File structure
 
-**Master/Tools:** Contains different functions used frequently.  
-**Master/Tools/Tests:** Test files for some of the functions.  
+**Master/Tools/:** Contains different functions used frequently.  
+**Master/Tools/Tests/:** Test files for some of the functions.  
 
-**Master/DP model/Linearization:** Look into eigenvalues of the supply model and contains a simple attempt of linearization. However, the information stored in the rotation matrix is important and need to be preserved.  
-**Master/DP model/LQ:** Simulations using Linear Quadratic (LQ) optimal control.  
-**Master/DP model/MPC:** Simulations using Model Predictive Control (MPC).  
-**Master/DP model/NMPC:** Simulations using Nonlinear Model Predictive Control (NMPC).  
-**Master/DP model/Simulation:** Early attempt of model simulation (should not be used, depreciated).  
-**Master/DP model/System Identification:** Contains files for running system identification and simulation files that uses model based controllers (LQ optimal control) to control the original vessel models.  
-**Master/DP model/Tracking:** Contains simulations for path-following and trajectory tracking.  
-**Master/DP model/GreenDP:** Contains simulations for GreenDP.  
-**Master/DP model/Thruster allocation:** Contains simulations for thruster allocation.  
+**Libraries/DSR/:** Contains the DSR and DSR_e functions used for system identification.  
+
+**Presentation/:** Presentation used when presenting project for the examineers.
+
+**Thesis/:** Contains Master thesis.
+
+**Master/DP model/Linearization/:** Contains files for identifying eigenvalues for the supply model and a simple attempt of linearization. However, the information stored in the rotation matrix is important and need to be preserved.  
+**Master/DP model/LQ/:** Simulations using Linear Quadratic (LQ) optimal control.  
+**Master/DP model/MPC/:** Simulations using Model Predictive Control (MPC).  
+**Master/DP model/NMPC/:** Simulations using Nonlinear Model Predictive Control (NMPC).  
+**Master/DP model/Simulation/:** Early attempt of model simulation (should not be used, depreciated).  
+**Master/DP model/System Identification/:** Contains files for running system identification and simulation files that uses model based controllers (LQ optimal control) to control the original vessel models.  
+**Master/DP model/Tracking/:** Contains simulations for path-following and trajectory tracking.  
+**Master/DP model/GreenDP/:** Contains simulations for GreenDP.  
+**Master/DP model/Thruster allocation/:** Contains simulations for thruster allocation.  
 
 Generally all simulations files read the setup from different scenario files. Thus several different scenarios can be run from the same simulation file. Furthermore, the workspace data are stored at the end of the simulations. These files are later used to generate plots of interest.
 Example of the simulation-sceanrio file relation (one - many):
